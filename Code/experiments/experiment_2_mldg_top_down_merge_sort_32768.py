@@ -12,7 +12,7 @@ from skopt.space import Categorical
 
 from sampling import ParameterSet
 
-from algorithms.straight_insertion_sort import straight_insertion_sort, gen_insertion_sort_environment
+from algorithms.top_down_merge_sort import top_down_merge_sort, gen_top_down_merge_sort_environment
 
 from nn.multi_domain_nn_forwarding import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
@@ -24,15 +24,15 @@ class MLDGInsertionSortSearch(HyperoptBayesianSearch):
 
     bayesian_sample_count = 200
 
-    sample_size = 8096
+    sample_size = 32768
 
-    suffix = "insertion_sort"
+    suffix = "top_down_merge_sort"
 
     base_dir = "./mldg_" + suffix + "_" + str(sample_size)
 
-    sorting_algorithm = straight_insertion_sort
+    sorting_algorithm = top_down_merge_sort
 
-    gen_env = gen_insertion_sort_environment
+    gen_env = gen_top_down_merge_sort_environment
 
     training_parameter_list: List[ParameterSet] = [
         ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
