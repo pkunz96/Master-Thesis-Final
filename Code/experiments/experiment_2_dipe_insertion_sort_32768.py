@@ -28,7 +28,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
     bayesian_sample_count = 200
 
-    sample_size = 8096
+    sample_size = 32768
 
     suffix = "insertion_sort"
 
