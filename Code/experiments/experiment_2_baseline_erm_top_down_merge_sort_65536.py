@@ -22,7 +22,7 @@ from nn.multi_domain_nn_forwarding import Layer, Procedure, categorical_cross_en
 
 class BaselineERMTopDownMergeSortSearch(HyperoptBayesianSearch):
 
-    base_dir = "./baseline_erm_top_down_merge_8096"
+    base_dir = "./baseline_erm_top_down_merge_65536"
 
     bayesian_sample_count = 200
 
