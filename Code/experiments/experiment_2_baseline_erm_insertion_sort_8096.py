@@ -24,44 +24,46 @@ class BaselineERMInsertionSortSearch(HyperoptBayesianSearch):
 
     base_dir = "./baseline_erm_insertion_sort_8096"
 
-    bayesian_sample_count = 100
+    bayesian_sample_count = 200
+
+    suffix = "insertion_sort"
 
     training_parameter_list: List[ParameterSet] = [
-        ParameterSet(20, 5, 0, 100),   # mu = 0 and sigma = 100
-        ParameterSet(20, 5, 50, 100),  # mu = 50 and sigma = 100
-        ParameterSet(20, 5, 100, 100), # mu = 100 and sigma = 100
-        ParameterSet(20, 5, 150, 100), # mu = 150 and sigma = 100
-        ParameterSet(20, 5, 0, 50),   # mu = 0 and sigma = 50
-        ParameterSet(20, 5, 0, 150),   # mu = 0 and sigma = 150
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),  # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
     ]
 
     validation_parameter_list: List[ParameterSet] = [
-        ParameterSet(20, 5, 0, 100),   # mu = 0 and sigma = 100
-        ParameterSet(20, 5, 50, 100),  # mu = 50 and sigma = 100
-        ParameterSet(20, 5, 100, 100), # mu = 100 and sigma = 100
-        ParameterSet(20, 5, 150, 100), # mu = 150 and sigma = 100
-        ParameterSet(20, 5, 0, 50),   # mu = 0 and sigma = 50
-        ParameterSet(20, 5, 0, 150),   # mu = 0 and sigma = 150
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),   # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
     ]
 
     test_parameter_list: List[ParameterSet] = [
-        ParameterSet(20, 5, 0, 100),   # mu = 0 and sigma = 100
-        ParameterSet(20, 5, 50, 100),  # mu = 50 and sigma = 100
-        ParameterSet(20, 5, 100, 100), # mu = 100 and sigma = 100
-        ParameterSet(20, 5, 150, 100), # mu = 150 and sigma = 100
-        ParameterSet(20, 5, 0, 50),   # mu = 0 and sigma = 50
-        ParameterSet(20, 5, 0, 150),   # mu = 0 and sigma = 150
+        ParameterSet(20, 5, 0, 100, suffix=suffix),  # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),   # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
 
-        ParameterSet(20, 5, 50, 50),  # ODD
-        ParameterSet(20, 5, 50, 150),  # ODD
+        ParameterSet(20, 5, 50, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 50, 150, suffix=suffix),  # ODD
 
-        ParameterSet(20, 5, 100, 50),  # ODD
-        ParameterSet(20, 5, 100, 150),  # ODD
+        ParameterSet(20, 5, 100, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 100, 150, suffix=suffix),  # ODD
 
-        ParameterSet(20, 5, 150, 50),  # ODD
-        ParameterSet(20, 5, 150, 150),  # ODD
+        ParameterSet(20, 5, 150, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 150, 150, suffix=suffix),  # ODD
 
-        ParameterSet(20, 5, 200, 200),  # ODD / Outlier
+        ParameterSet(20, 5, 200, 200, suffix=suffix),  # ODD / Outlier
     ]
 
     def __init__(self):
@@ -92,7 +94,7 @@ class BaselineERMInsertionSortSearch(HyperoptBayesianSearch):
                                         loss_func_arr.append(None)
                                     forwarding_arr.append(False)
                                     binary_arr.append(False)
-                                search_space.append((Configuration(neuron_count_arr, activation_func_list,loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 100, sample_size=8096, iterations=5)))
+                                search_space.append((Configuration(neuron_count_arr, activation_func_list,loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 300, sample_size=8096, iterations=5)))
         print("Search Space Size: " + str(len(search_space)))
         return search_space
 
