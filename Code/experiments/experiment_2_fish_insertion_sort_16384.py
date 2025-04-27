@@ -22,15 +22,55 @@ from nn.multi_domain_nn_forwarding import Layer, Procedure, categorical_cross_en
 
 class FishInsertionSortSearch(HyperoptBayesianSearch):
 
-    base_dir = "./fish_insertion_sort_16384"
+    bayesian_sample_count = 200
 
-    bayesian_sample_count = 100
+    sample_size = 16384
 
-    training_parameter_list: List[ParameterSet] = [ParameterSet(10,5,10,0), ParameterSet(15,5,10,0), ParameterSet(15,10,10,0)]
+    suffix = "insertion_sort"
 
-    validation_parameter_list: List[ParameterSet] = [ParameterSet(10,5,10,0), ParameterSet(15,5,10,0), ParameterSet(15,10,10,0)]
+    base_dir = "./fish_" + suffix + "_" + str(sample_size)
 
-    test_parameter_list: List[ParameterSet] = [ParameterSet(10,5,10,0), ParameterSet(100, 20, 10, 0)]
+    sorting_algorithm = straight_insertion_sort
+
+    gen_env = gen_insertion_sort_environment
+
+    training_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),  # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
+    ]
+
+    validation_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),   # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
+    ]
+
+    test_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),  # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),   # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
+
+        ParameterSet(20, 5, 50, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 50, 150, suffix=suffix),  # ODD
+
+        ParameterSet(20, 5, 100, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 100, 150, suffix=suffix),  # ODD
+
+        ParameterSet(20, 5, 150, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 150, 150, suffix=suffix),  # ODD
+
+        ParameterSet(20, 5, 200, 200, suffix=suffix),  # ODD / Outlier
+    ]
 
     def __init__(self):
         super().__init__(FishInsertionSortSearch.training_parameter_list, FishInsertionSortSearch.validation_parameter_list, FishInsertionSortSearch.test_parameter_list, FishInsertionSortSearch.base_dir, FishInsertionSortSearch.bayesian_sample_count, gen_insertion_sort_environment, straight_insertion_sort)
@@ -60,7 +100,7 @@ class FishInsertionSortSearch(HyperoptBayesianSearch):
                                         loss_func_arr.append(None)
                                     forwarding_arr.append(False)
                                     binary_arr.append(False)
-                                search_space.append((Configuration(neuron_count_arr, activation_func_list,loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 100, sample_size=16384, iterations=5)))
+                                search_space.append((Configuration(neuron_count_arr, activation_func_list,loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 100, sample_size=8096, iterations=5)))
         print("Search Space Size: " + str(len(search_space)))
         return search_space
 
