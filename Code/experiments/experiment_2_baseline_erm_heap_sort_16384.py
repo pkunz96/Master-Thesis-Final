@@ -22,7 +22,7 @@ from nn.multi_domain_nn_forwarding import Layer, Procedure, categorical_cross_en
 
 class BaselineERMHeapSortSearch(HyperoptBayesianSearch):
 
-    base_dir = "./baseline_erm_heap_sort_8096"
+    base_dir = "./baseline_erm_heap_sort_16384"
 
     bayesian_sample_count = 200
 
