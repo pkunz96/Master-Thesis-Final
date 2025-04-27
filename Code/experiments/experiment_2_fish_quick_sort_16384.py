@@ -73,7 +73,7 @@ class FishInsertionSortSearch(HyperoptBayesianSearch):
     ]
 
     def __init__(self):
-        super().__init__(FishInsertionSortSearch.training_parameter_list, FishInsertionSortSearch.validation_parameter_list, FishInsertionSortSearch.test_parameter_list, FishInsertionSortSearch.base_dir, FishInsertionSortSearch.bayesian_sample_count, gen_insertion_sort_environment, straight_insertion_sort)
+        super().__init__(FishInsertionSortSearch.training_parameter_list, FishInsertionSortSearch.validation_parameter_list, FishInsertionSortSearch.test_parameter_list, FishInsertionSortSearch.base_dir, FishInsertionSortSearch.bayesian_sample_count, FishInsertionSortSearch.gen_env, FishInsertionSortSearch.sorting_algorithm)
 
     def _build_search_space(self) -> List[Tuple[Configuration, Hyperparameters]]:
         search_space = []

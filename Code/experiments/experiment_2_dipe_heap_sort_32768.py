@@ -39,7 +39,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
     gen_env = gen_heap_sort_environment
 
     def __init__(self):
-        super().__init__(DIPEInsertionSortSearch.training_parameter_list, DIPEInsertionSortSearch.validation_parameter_list, DIPEInsertionSortSearch.test_parameter_list, DIPEInsertionSortSearch.base_dir, DIPEInsertionSortSearch.bayesian_sample_count, gen_insertion_sort_environment, straight_insertion_sort)
+        super().__init__(DIPEInsertionSortSearch.training_parameter_list, DIPEInsertionSortSearch.validation_parameter_list, DIPEInsertionSortSearch.test_parameter_list, DIPEInsertionSortSearch.base_dir, DIPEInsertionSortSearch.bayesian_sample_count, DIPEInsertionSortSearch.gen_env, DIPEInsertionSortSearch.sorting_algorithm)
 
     def _build_search_space(self) -> List[Tuple[Configuration, Hyperparameters]]:
         search_space = []
