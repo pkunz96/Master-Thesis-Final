@@ -1,0 +1,2 @@
+p_mu=10 p_sigma=5 s_mu10 s_sigma=0: tf.Tensor(0.68725294, shape=(), dtype=float32)
+p_mu=100 p_sigma=20 s_mu10 s_sigma=0: tf.Tensor(0.69614625, shape=(), dtype=float32)

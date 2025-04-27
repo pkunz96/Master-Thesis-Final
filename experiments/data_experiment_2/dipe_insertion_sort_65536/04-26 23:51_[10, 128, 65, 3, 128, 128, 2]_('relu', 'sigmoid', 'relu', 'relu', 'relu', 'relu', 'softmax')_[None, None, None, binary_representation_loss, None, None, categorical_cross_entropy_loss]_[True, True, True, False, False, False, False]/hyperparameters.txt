@@ -1,0 +1,9 @@
+alpha: 0.001
+beta: 0.001
+gamma: 0.001
+iterations: 5
+sample_size: 8096
+epochs: 10
+batch_size: 64
+optimizer: adam
+early_stopping: 10
