@@ -24,7 +24,7 @@ class BaselineERMQuickSortSearch(HyperoptBayesianSearch):
 
     base_dir = "./baseline_erm_quick_sort_8096"
 
-    bayesian_sample_count = 200
+    bayesian_sample_count = 68
 
     suffix = "quick_sort"
 
@@ -77,9 +77,9 @@ class BaselineERMQuickSortSearch(HyperoptBayesianSearch):
                 activation_func_list = activation_func_list + ("softmax",)
                 #128 to 1024 neuron per hidden layer
                 for neuron_count_pow_base_2 in range(7, 11):
-                    for learning_rate in [0.1, 0.01, 0.001, 0.0001]:
-                        for beta in [0.1, 0.01, 0.001, 0.0001]:
-                            for gamma in [0.1, 0.01, 0.001, 0.0001]:
+                    for learning_rate in [0.01, 0.001, 0.0001]:
+                        for beta in [1]:
+                            for gamma in [1]:
                                 neuron_count_arr = []
                                 for count in range(0, hidden_layer_counter):
                                     neuron_count_arr += [2**neuron_count_pow_base_2]
@@ -97,6 +97,7 @@ class BaselineERMQuickSortSearch(HyperoptBayesianSearch):
                                 search_space.append((Configuration(neuron_count_arr, activation_func_list,loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 300, sample_size=8096, iterations=5)))
         print("Search Space Size: " + str(len(search_space)))
         return search_space
+
 
     def _create_initial_procedure_builder(self, model: Layer, hyperparameters: Hyperparameters, training_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], validation_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], test_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]]) -> Callable[[], Procedure]:
         def pretraining():

@@ -22,6 +22,8 @@ from nn.multi_domain_nn_forwarding import Layer, Procedure, categorical_cross_en
 
 class MLDGInsertionSortSearch(HyperoptBayesianSearch):
 
+    #BASE
+
     bayesian_sample_count = 200
 
     sample_size = 8096
@@ -83,9 +85,9 @@ class MLDGInsertionSortSearch(HyperoptBayesianSearch):
                 activation_func_list = activation_func_list + ("softmax",)
                 #128 to 1024 neuron per hidden layer
                 for neuron_count_pow_base_2 in range(7, 11):
-                    for learning_rate in [0.1, 0.01, 0.001, 0.0001]:
-                        for beta in [0.1, 0.01, 0.001, 0.0001]:
-                            for gamma in [0.1, 0.01, 0.001, 0.0001]:
+                    for learning_rate in [0.01, 0.001, 0.0001]:
+                        for beta in [0.001, 0.0001]:
+                            for gamma in [0.001, 0.0001]:
                                 neuron_count_arr = []
                                 for count in range(0, hidden_layer_counter):
                                     neuron_count_arr += [2**neuron_count_pow_base_2]

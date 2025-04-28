@@ -100,7 +100,7 @@ class MonteCarloSampling:
             sampled_count = 0
             start_time = time.time()
             while predictor_arr is None or sampled_count < MonteCarloSampling.sample_size:
-                thread_count = min([400, MonteCarloSampling.sample_size - sampled_count])
+                thread_count = min([5, MonteCarloSampling.sample_size - sampled_count])
                 result_queue = queue.Queue()
                 thread_list = []
                 for i in range(0, thread_count):
