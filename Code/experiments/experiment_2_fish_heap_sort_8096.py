@@ -103,7 +103,7 @@ class FishInsertionSortSearch(HyperoptBayesianSearch):
                                         loss_func_arr.append(None)
                                     forwarding_arr.append(False)
                                     binary_arr.append(False)
-                                search_space.append((Configuration(neuron_count_arr, activation_func_list,loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 100, sample_size=8096, iterations=5)))
+                                search_space.append((Configuration(neuron_count_arr, activation_func_list,loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 50, sample_size=FishInsertionSortSearch.sample_size, iterations=5)))
         print("Search Space Size: " + str(len(search_space)))
         return search_space
 

@@ -33,14 +33,34 @@ def create_training_data(param_set: sampling.ParameterSet, sample_size: int) -> 
 
 sample_size: int = 2**4
 
-x_training_data_0, y_training_data_0, class_count = create_training_data(sampling.ParameterSet(10, 3, 5, 0), sample_size)
-x_training_data_1, y_training_data_1, class_count = create_training_data(sampling.ParameterSet(5, 1, 5, 0), sample_size)
-x_training_data_2, y_training_data_2, class_count = create_training_data(sampling.ParameterSet(12, 5, 5, 0), sample_size)
-x_training_data_3, y_training_data_3, class_count = create_training_data(sampling.ParameterSet(8, 3, 5, 0), sample_size)
+x_training_data_0, y_training_data_0, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 100, suffix="quick_sort"), sample_size)
+x_training_data_1, y_training_data_1, class_count = create_training_data(sampling.ParameterSet(20, 5, 50, 100, suffix="quick_sort"), sample_size)
+x_training_data_2, y_training_data_2, class_count = create_training_data(sampling.ParameterSet(20, 5, 100, 100, suffix="quick_sort"), sample_size)
+x_training_data_3, y_training_data_3, class_count = create_training_data(sampling.ParameterSet(20, 5, 150, 100, suffix="quick_sort"), sample_size)
 
 
-x_validation_data_0, y_validation_data_0, class_count = create_training_data(sampling.ParameterSet(10, 3, 5, 0), sample_size)
-x_validation_data_1, y_validation_data_1, class_count = create_training_data(sampling.ParameterSet(20, 7, 5, 0), sample_size)
+"""
+    training_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),  # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
+    ]
+
+    validation_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),   # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150 
+    ]
+"""
+
+x_validation_data_0, y_validation_data_0, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 50, suffix="quick_sort"), sample_size)
+x_validation_data_1, y_validation_data_1, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 150,  suffix="quick_sort"), sample_size)
 
 extractor: List[Layer] = [
     Layer(name="extractor_in", input_dim=x_training_data_0.shape[1], output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
@@ -58,15 +78,15 @@ model: List[Layer] = extractor + predictor
 
 training_data_dict = {
     "training0": (x_training_data_0, y_training_data_0),
-    "training1": (x_training_data_1, y_training_data_1),
-    "training2": (x_training_data_2, y_training_data_2),
-    "training3": (x_training_data_3, y_training_data_3),
+    #"training1": (x_training_data_1, y_training_data_1),
+    #"training2": (x_training_data_2, y_training_data_2),
+   # "training3": (x_training_data_3, y_training_data_3),
 
 }
 
 validation_data_dict = {
     "validation0" : (x_validation_data_0, y_validation_data_0),
-    "validation1": (x_validation_data_1, y_validation_data_1),
+    #"validation1": (x_validation_data_1, y_validation_data_1),
 }
 
 procedure: Procedure = Procedure(Procedure.compile_model(model), training_data_dict, validation_data_dict, validation_data_dict, 1000, 0.0001, 128, "adam", 1000)

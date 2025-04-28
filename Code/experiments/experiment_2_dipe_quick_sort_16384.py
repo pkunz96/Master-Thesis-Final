@@ -28,9 +28,9 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
     bayesian_sample_count = 461
 
-    sample_size = 8096
+    sample_size = 16384
 
-    suffix = "16384"
+    suffix = "quick_sort"
 
     base_dir = "./dipe_" + suffix + "_" + str(sample_size)
 
@@ -114,7 +114,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
                         for learning_rate in [0.01, 0.001, 0.0001]:
                             for beta in [0.001, 0.0001]:
                                 for gamma in [0.001, 0.0001]:
-                                    search_space.append((Configuration(neuron_count_arr, activation_func_list, loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 300, sample_size=8096, iterations=5)))
+                                    search_space.append((Configuration(neuron_count_arr, activation_func_list, loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 50, sample_size=DIPEInsertionSortSearch.sample_size, iterations=5)))
         print("Search Space Size: " + str(len(search_space)))
         return search_space
 
