@@ -22,7 +22,7 @@ from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_en
 
 class FishInsertionSortSearch(HyperoptBayesianSearch):
 
-    bayesian_sample_count = 200
+    bayesian_sample_count = 135
 
     sample_size = 32768
 

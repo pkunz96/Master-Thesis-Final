@@ -26,7 +26,7 @@ from sklearn.metrics import silhouette_score
 
 class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
-    bayesian_sample_count = 200
+    bayesian_sample_count = 461
 
     sample_size = 8096
 
@@ -38,6 +38,45 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
     gen_env = gen_quick_sort_environment
 
+    training_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),  # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
+    ]
+
+    validation_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),   # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),   # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
+    ]
+
+    test_parameter_list: List[ParameterSet] = [
+        ParameterSet(20, 5, 0, 100, suffix=suffix),  # mu = 0 and sigma = 100
+        ParameterSet(20, 5, 50, 100, suffix=suffix),  # mu = 50 and sigma = 100
+        ParameterSet(20, 5, 100, 100, suffix=suffix), # mu = 100 and sigma = 100
+        ParameterSet(20, 5, 150, 100, suffix=suffix), # mu = 150 and sigma = 100
+        ParameterSet(20, 5, 0, 50, suffix=suffix),   # mu = 0 and sigma = 50
+        ParameterSet(20, 5, 0, 150, suffix=suffix),   # mu = 0 and sigma = 150
+
+        ParameterSet(20, 5, 50, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 50, 150, suffix=suffix),  # ODD
+
+        ParameterSet(20, 5, 100, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 100, 150, suffix=suffix),  # ODD
+
+        ParameterSet(20, 5, 150, 50, suffix=suffix),  # ODD
+        ParameterSet(20, 5, 150, 150, suffix=suffix),  # ODD
+
+        ParameterSet(20, 5, 200, 200, suffix=suffix),  # ODD / Outlier
+    ]
+
+
     def __init__(self):
         super().__init__(DIPEInsertionSortSearch.training_parameter_list, DIPEInsertionSortSearch.validation_parameter_list, DIPEInsertionSortSearch.test_parameter_list, DIPEInsertionSortSearch.base_dir, DIPEInsertionSortSearch.bayesian_sample_count, DIPEInsertionSortSearch.gen_env, DIPEInsertionSortSearch.sorting_algorithm)
 
@@ -47,7 +86,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
         binary_embedding_dim: int = 3  # Two predicates plus the state.
 
         for first_extractor_neuron_count_exp in range(7, 11):
-            for predictor_neuron_count_exp in range(7, 11):
+            for predictor_neuron_count_exp in range(5, 7):
                 for hidden_extractor_layer_count in range(1, 3):
                     first_hidden_extractor_layer_size = 2**first_extractor_neuron_count_exp
                     extract_neuron_count_arr = [first_hidden_extractor_layer_size - x * ceil((first_hidden_extractor_layer_size - binary_embedding_dim) / hidden_extractor_layer_count) for x in range(0, hidden_extractor_layer_count + 1)]
@@ -72,11 +111,13 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
                     layer_count = len(neuron_count_arr) - 1
                     for activation_func_list in list(product(["relu", "sigmoid"], repeat=layer_count)):
                         activation_func_list = activation_func_list + ("softmax",)
-                        for learning_rate in [0.01, 0.001]:
-                            for beta in [0.01, 0.001]:
-                                for gamma in [0.01, 0.001]:
-                                    search_space.append((Configuration(neuron_count_arr, activation_func_list, loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 10, 64, "adam", 10, sample_size=8096, iterations=5)))
+                        for learning_rate in [0.01, 0.001, 0.0001]:
+                            for beta in [0.001, 0.0001]:
+                                for gamma in [0.001, 0.0001]:
+                                    search_space.append((Configuration(neuron_count_arr, activation_func_list, loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 300, sample_size=8096, iterations=5)))
+        print("Search Space Size: " + str(len(search_space)))
         return search_space
+
 
     def _create_initial_procedure_builder(self, model: Layer, hyperparameters: Hyperparameters, training_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], validation_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], test_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]]) -> Callable[[], Procedure]:
         def pretraining():

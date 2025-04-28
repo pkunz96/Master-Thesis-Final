@@ -24,7 +24,7 @@ class MLDGInsertionSortSearch(HyperoptBayesianSearch):
 
     #BASE
 
-    bayesian_sample_count = 200
+    bayesian_sample_count = 269
 
     sample_size = 8096
 
