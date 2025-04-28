@@ -6,7 +6,7 @@ from algorithms.straight_insertion_sort import straight_insertion_sort, gen_inse
 from experiments import sampling
 #from experiments import sampling_old as sampling
 
-from nn.multi_domain_nn_forwarding import AbstractSearch, MLDGProcedure, Procedure, Layer, \
+from nn.algo_learning_dg_framework import AbstractSearch, MLDGProcedure, Procedure, Layer, \
     binary_representation_loss, categorical_cross_entropy_loss
 import tensorflow as tf
 

@@ -1679,9 +1679,9 @@ class AbstractSearch:
                         for class_name in pipeline.stage_iteration_test_data_name_class_accuracy_dict[stage][stage][data_name]:
                             f.write(str(class_name) + ": " + str(pipeline.stage_iteration_test_data_name_class_accuracy_dict[stage][stage][data_name][class_name]) +"\n")
 
-                pipeline.stage_iteration_loss_fig_dict[stage][iteration].savefig(iteration_dir + "loss.png")
-                pipeline.stage_iteration_ds_loss_fig_dict[stage][iteration].savefig(iteration_dir + "ds_loss.png")
-                pipeline.stage_iteration_accuracy_fig_dict[stage][iteration].savefig(iteration_dir + "accuracy.png")
+                pipeline.stage_iteration_loss_fig_dict[stage][iteration].savefig(iteration_dir + "loss.png", dpi=600)
+                pipeline.stage_iteration_ds_loss_fig_dict[stage][iteration].savefig(iteration_dir + "ds_loss.png", dpi=600)
+                pipeline.stage_iteration_accuracy_fig_dict[stage][iteration].savefig(iteration_dir + "accuracy.png", dpi=600)
                 for training_data_name in pipeline.stage_iteration_training_data_dict[stage][iteration]:
                     training_data_dir = AbstractSearch.create_dir_if_not_existent(iteration_dir + "/data/training/")
                     training_data_dir = training_data_dir + training_data_name
@@ -1712,44 +1712,44 @@ class AbstractSearch:
                 f.write(str(AbstractSearch.map_list(pipeline.stage_training_loss_list[stage])))
                 fig, ax = AbstractSearch.plot_list("Epochs", "Loss", "Training Loss", "", pipeline.stage_training_loss_list[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(loss_dir + "training_loss.jpg")
+                fig.savefig(loss_dir + "training_loss.jpg", dpi=600)
             with open(loss_dir + "layer_name_training_loss.txt", "w") as f:
                 f.write(str(AbstractSearch.map_list_dict(pipeline.stage_layer_name_training_loss_dict[stage])))
                 fig, ax = AbstractSearch.plot_dict_list("Epochs", "Loss", "Layerwise Training Loss", pipeline.stage_layer_name_training_loss_dict[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(loss_dir + "layer_name_training_loss.jpg")
+                fig.savefig(loss_dir + "layer_name_training_loss.jpg", dpi=600)
             with open(loss_dir + "validation_loss.txt", "w") as f:
                 f.write(str(AbstractSearch.map_list(pipeline.stage_validation_loss_list[stage])))
                 fig, ax = AbstractSearch.plot_list("Epochs", "Loss", "Validation Loss", "", pipeline.stage_validation_loss_list[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(loss_dir + "validation_loss.jpg")
+                fig.savefig(loss_dir + "validation_loss.jpg", dpi=600)
             with open(loss_dir + "layer_name_validation_loss.txt", "w") as f:
                 f.write(str(AbstractSearch.map_list_dict(pipeline.stage_layer_name_validation_loss_dict[stage])))
                 fig, ax = AbstractSearch.plot_dict_list("Epochs", "Loss", "Layerwise Validation Loss",  pipeline.stage_layer_name_validation_loss_dict[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(loss_dir + "layer_name_validation_loss.jpg")
+                fig.savefig(loss_dir + "layer_name_validation_loss.jpg", dpi=600)
             with open(loss_dir + "data_name_validation_loss.txt", "w") as f:
                 f.write(str(AbstractSearch.map_list_dict(pipeline.stage_data_name_validation_loss_dict[stage])))
                 fig, ax = AbstractSearch.plot_dict_list("Epochs", "Loss", "Validation Loss for Data Sets",  pipeline.stage_data_name_validation_loss_dict[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(loss_dir + "data_name_validation_loss.jpg")
+                fig.savefig(loss_dir + "data_name_validation_loss.jpg", dpi=600)
 
             accuracy_dir = AbstractSearch.create_dir_if_not_existent(stage_dir + "accuracy/")
             with open(accuracy_dir + "training_accuracy.txt", "w") as f:
                 f.write(str(AbstractSearch.map_list(pipeline.stage_training_accuracy_list[stage])))
                 fig, ax = AbstractSearch.plot_list("Epochs", "Accuracy", "Training Accuracy", "", pipeline.stage_training_accuracy_list[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(accuracy_dir + "training_accuracy.jpg")
+                fig.savefig(accuracy_dir + "training_accuracy.jpg", dpi=600)
             with open(accuracy_dir + "validation_accuracy.txt", "w") as f:
                 f.write(str(AbstractSearch.map_list(pipeline.stage_validation_accuracy_list[stage])))
                 fig, ax = AbstractSearch.plot_list("Epochs", "Accuracy", "Validation Accuracy", "",  pipeline.stage_validation_accuracy_list[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(accuracy_dir + "validation_accuracy.jpg")
+                fig.savefig(accuracy_dir + "validation_accuracy.jpg", dpi=600)
             with open(accuracy_dir + "data_name_validation_accuracy.txt", "w") as f:
                 f.write(str(AbstractSearch.map_list_dict(pipeline.stage_data_name_validation_accuracy_dict[stage])))
                 fig, ax = AbstractSearch.plot_dict_list("Epochs", "Accuracy", "Validation Accuracy for Data Sets",  pipeline.stage_data_name_validation_accuracy_dict[stage])
                 ax.set_ylim(bottom=0)
-                fig.savefig(accuracy_dir + "data_name_validation_accuracy.jpg")
+                fig.savefig(accuracy_dir + "data_name_validation_accuracy.jpg", dpi=600)
             with open(accuracy_dir + "test_accuracy.txt", "w") as f:
                 f.write(str(pipeline.stage_average_test_accuracy[stage]))
             with open(accuracy_dir + "data_name_avg_test_accuracy.txt", "w") as f:

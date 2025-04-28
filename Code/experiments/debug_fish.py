@@ -5,7 +5,7 @@ from sklearn.preprocessing import MinMaxScaler
 from algorithms.straight_insertion_sort import straight_insertion_sort, gen_insertion_sort_environment
 from experiments import sampling
 from experiments.sampling import ParameterSet
-from nn.multi_domain_nn_forwarding import AbstractSearch, MLDGProcedure, Procedure, Layer, \
+from nn.algo_learning_dg_framework import AbstractSearch, MLDGProcedure, Procedure, Layer, \
     binary_representation_loss, categorical_cross_entropy_loss, FishProcedure
 import tensorflow as tf
 

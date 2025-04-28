@@ -14,7 +14,7 @@ from sampling import ParameterSet
 
 from algorithms.top_down_merge_sort import top_down_merge_sort, gen_top_down_merge_sort_environment
 
-from nn.multi_domain_nn_forwarding import Layer, Procedure, categorical_cross_entropy_loss, \
+from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
     create_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
     FishProcedure, HyperoptBayesianSearch
