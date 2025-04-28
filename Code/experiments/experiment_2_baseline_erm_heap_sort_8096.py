@@ -24,7 +24,7 @@ class BaselineERMHeapSortSearch(HyperoptBayesianSearch):
 
     base_dir = "./baseline_erm_heap_sort_8096"
 
-    bayesian_sample_count = 200
+    bayesian_sample_count = 68
 
     suffix = "heap_sort"
 
