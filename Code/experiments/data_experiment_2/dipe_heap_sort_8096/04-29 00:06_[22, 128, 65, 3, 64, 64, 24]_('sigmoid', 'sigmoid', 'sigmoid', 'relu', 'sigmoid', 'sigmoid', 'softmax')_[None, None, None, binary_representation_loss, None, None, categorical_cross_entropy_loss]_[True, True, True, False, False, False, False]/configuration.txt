@@ -1,5 +1,0 @@
-neuron_count_list: [22, 128, 65, 3, 64, 64, 24]
-activation_func_list: ('sigmoid', 'sigmoid', 'sigmoid', 'relu', 'sigmoid', 'sigmoid', 'softmax')
-forwarding_list: [True, True, True, False, False, False, False]
-loss_funct_list: [None, None, None, <function binary_representation_loss at 0x284c1adc0>, None, None, <function categorical_cross_entropy_loss at 0x2844e8940>]
-binary_layer_list: [False, False, False, False, False, False, False]
