@@ -180,10 +180,12 @@ def binary_representation_loss_original(out_val: tf.Tensor, x: tf.Tensor, x_inde
 
 
 def binary_representation_loss(out_val: tf.Tensor, x: tf.Tensor, x_index: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
-#    noise = tf.convert_to_tensor(np.random.normal(loc=0.0, scale=0.5, size=out_val.shape), dtype=out_val.dtype)
-#    binary_loss = tf.math.log((tf.reduce_sum(tf.square(tf.subtract(out_val, 1)) * (tf.square(out_val) + noise))) + tf.constant(1.0))
     binary_loss = tf.math.log((tf.reduce_sum(tf.square(tf.subtract(out_val, 1)) * tf.square(out_val))) + tf.constant(1.0))
     return binary_loss
+
+
+def disabled_binary_representation_loss(out_val: tf.Tensor, x: tf.Tensor, x_index: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+    return tf.constant(0.0)
 
 
 def create_contrastive_loss(cluster_labels: List[int], margin: float = 1.0) -> Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
@@ -237,6 +239,12 @@ def create_contrastive_loss(cluster_labels: List[int], margin: float = 1.0) -> C
 
         loss = tf.reduce_mean(loss_similar + loss_dissimilar)
         return loss + tf.math.log((tf.reduce_sum(tf.square(tf.subtract(out_val, 1)) * tf.square(out_val))) + tf.constant(1.0))
+
+    return contrastive_loss
+
+def create_disabled_contrastive_loss(cluster_labels: List[int], margin: float = 1.0) -> Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor]:
+    def contrastive_loss(out_val: tf.Tensor, x: tf.Tensor, x_index: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+        return tf.constant(0.0)
 
     return contrastive_loss
 
