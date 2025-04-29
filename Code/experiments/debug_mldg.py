@@ -32,7 +32,7 @@ def create_training_data(param_set: sampling.ParameterSet, sample_size: int) -> 
 
 # Data Creation
 
-sample_size: int = 2**17
+sample_size: int = 2**4
 print(sample_size)
 
 
@@ -47,15 +47,15 @@ x_validation_data_1, y_validation_data_1, class_count = create_training_data(sam
 x_validation_data_2, y_validation_data_2, class_count = create_training_data(sampling.ParameterSet(17, 1, 5, 0), sample_size)
 
 extractor: List[Layer] = [
-    Layer(name="extractor_in", input_dim=x_training_data_0.shape[1], output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="extractor_1", input_dim=128, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="extractor_out", input_dim=128, output_dim=256, forward=False, loss_function=None, loss_weight=1.0,activation_function_name="sigmoid")
+    Layer(name="extractor_in", input_dim=x_training_data_0.shape[1], output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="extractor_1", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="extractor_out", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0,activation_function_name="sigmoid")
 ]
 
 predictor: List[Layer] = [
-    Layer(name="predictor_in", input_dim=256, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="predictor_in", input_dim=128, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="predictor_out", input_dim=128, output_dim=class_count, forward=False, loss_function=categorical_cross_entropy_loss, loss_weight=1.0, activation_function_name="softmax")
+    Layer(name="predictor_in", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="predictor_in", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="predictor_out", input_dim=256, output_dim=class_count, forward=False, loss_function=categorical_cross_entropy_loss, loss_weight=1.0, activation_function_name="softmax")
 ]
 
 model: List[Layer] = extractor + predictor

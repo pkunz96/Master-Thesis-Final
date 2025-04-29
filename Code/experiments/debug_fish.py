@@ -31,7 +31,7 @@ def create_training_data(param_set: sampling.ParameterSet, sample_size: int) -> 
 
 # Data Creation
 
-sample_size: int = 2**10
+sample_size: int = 2**6
 
 x_training_data_0, y_training_data_0, class_count = create_training_data(sampling.ParameterSet(10, 3, 5, 0), sample_size)
 x_training_data_1, y_training_data_1, class_count = create_training_data(sampling.ParameterSet(5, 1, 5, 0), sample_size)
@@ -42,16 +42,17 @@ x_training_data_3, y_training_data_3, class_count = create_training_data(samplin
 x_validation_data_0, y_validation_data_0, class_count = create_training_data(sampling.ParameterSet(10, 3, 5, 0), sample_size)
 x_validation_data_1, y_validation_data_1, class_count = create_training_data(sampling.ParameterSet(20, 7, 5, 0), sample_size)
 
+
 extractor: List[Layer] = [
-    Layer(name="extractor_in", input_dim=x_training_data_0.shape[1], output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="extractor_1", input_dim=128, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="extractor_out", input_dim=128, output_dim=256, forward=False, loss_function=None, loss_weight=1.0,activation_function_name="sigmoid")
+    Layer(name="extractor_in", input_dim=x_training_data_0.shape[1], output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="extractor_1", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="extractor_out", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0,activation_function_name="sigmoid")
 ]
 
 predictor: List[Layer] = [
-    Layer(name="predictor_in", input_dim=256, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="predictor_in", input_dim=128, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="predictor_out", input_dim=128, output_dim=class_count, forward=False, loss_function=categorical_cross_entropy_loss, loss_weight=1.0, activation_function_name="softmax")
+    Layer(name="predictor_in", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="predictor_in", input_dim=256, output_dim=256, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="predictor_out", input_dim=256, output_dim=class_count, forward=False, loss_function=categorical_cross_entropy_loss, loss_weight=1.0, activation_function_name="softmax")
 ]
 
 model: List[Layer] = extractor + predictor
@@ -69,5 +70,5 @@ validation_data_dict = {
     "validation1": (x_validation_data_1, y_validation_data_1),
 }
 
-procedure: FishProcedure = FishProcedure(Procedure.compile_model(model), training_data_dict, validation_data_dict, validation_data_dict, 1000, 512, "adam", 1000, alpha=0.1, beta=0.001)
+procedure: FishProcedure = FishProcedure(Procedure.compile_model(model), training_data_dict, validation_data_dict, validation_data_dict, 1000, 512, "adam", 1000, alpha=0.1, beta=0.01)
 procedure.train()

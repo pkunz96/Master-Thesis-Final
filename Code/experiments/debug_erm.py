@@ -30,13 +30,17 @@ def create_training_data(param_set: sampling.ParameterSet, sample_size: int) -> 
 
 
 # Data Creation
+#ParameterSet(20, 5, 0, 100, suffix=suffix),  # mu = 0 and sigma = 100
+#ParameterSet(20, 5, 50, 100, suffix=suffix),
 
-sample_size: int = 2**4
+sample_size: int = 2**10
 
-x_training_data_0, y_training_data_0, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 100, suffix="quick_sort"), sample_size)
-x_training_data_1, y_training_data_1, class_count = create_training_data(sampling.ParameterSet(20, 5, 50, 100, suffix="quick_sort"), sample_size)
-x_training_data_2, y_training_data_2, class_count = create_training_data(sampling.ParameterSet(20, 5, 100, 100, suffix="quick_sort"), sample_size)
-x_training_data_3, y_training_data_3, class_count = create_training_data(sampling.ParameterSet(20, 5, 150, 100, suffix="quick_sort"), sample_size)
+x_training_data_0, y_training_data_0, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 20, suffix="quick_sort"), sample_size)
+x_training_data_1, y_training_data_1, class_count = create_training_data(sampling.ParameterSet(20, 5, 200, 20, suffix="quick_sort"), sample_size)
+
+#x_training_data_1, y_training_data_1, class_count = create_training_data(sampling.ParameterSet(20, 5, 50, 100, suffix="quick_sort"), sample_size)
+#x_training_data_2, y_training_data_2, class_count = create_training_data(sampling.ParameterSet(20, 5, 100, 100, suffix="quick_sort"), sample_size)
+#x_training_data_3, y_training_data_3, class_count = create_training_data(sampling.ParameterSet(20, 5, 150, 100, suffix="quick_sort"), sample_size)
 
 
 """
@@ -59,25 +63,26 @@ x_training_data_3, y_training_data_3, class_count = create_training_data(samplin
     ]
 """
 
-x_validation_data_0, y_validation_data_0, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 50, suffix="quick_sort"), sample_size)
-x_validation_data_1, y_validation_data_1, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 150,  suffix="quick_sort"), sample_size)
+#x_validation_data_0, y_validation_data_0, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 50, suffix="quick_sort"), sample_size)
+#x_validation_data_1, y_validation_data_1, class_count = create_training_data(sampling.ParameterSet(20, 5, 0, 150,  suffix="quick_sort"), sample_size)
 
 extractor: List[Layer] = [
-    Layer(name="extractor_in", input_dim=x_training_data_0.shape[1], output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="extractor_1", input_dim=128, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="extractor_out", input_dim=128, output_dim=256, forward=False, loss_function=None, loss_weight=1.0,activation_function_name="sigmoid")
+    Layer(name="extractor_in", input_dim=x_training_data_0.shape[1], output_dim=2048, forward=True, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="extractor_1", input_dim=2048, output_dim=2048, forward=True, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="extractor_out", input_dim=2048, output_dim=2048, forward=True, loss_function=None, loss_weight=1.0,activation_function_name="sigmoid")
 ]
 
 predictor: List[Layer] = [
-    Layer(name="predictor_in", input_dim=256, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="predictor_in", input_dim=128, output_dim=128, forward=False, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
-    Layer(name="predictor_out", input_dim=128, output_dim=class_count, forward=False, loss_function=categorical_cross_entropy_loss, loss_weight=1.0, activation_function_name="softmax")
+    Layer(name="predictor_in", input_dim=2048, output_dim=2048, forward=True, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="predictor_in", input_dim=2048, output_dim=2048, forward=True, loss_function=None, loss_weight=1.0, activation_function_name="sigmoid"),
+    Layer(name="predictor_out", input_dim=2048, output_dim=class_count, forward=False, loss_function=categorical_cross_entropy_loss, loss_weight=1.0, activation_function_name="softmax")
 ]
 
 model: List[Layer] = extractor + predictor
 
 training_data_dict = {
     "training0": (x_training_data_0, y_training_data_0),
+    "training1": (x_training_data_1, y_training_data_1),
     #"training1": (x_training_data_1, y_training_data_1),
     #"training2": (x_training_data_2, y_training_data_2),
    # "training3": (x_training_data_3, y_training_data_3),
@@ -85,7 +90,7 @@ training_data_dict = {
 }
 
 validation_data_dict = {
-    "validation0" : (x_validation_data_0, y_validation_data_0),
+    "validation0" : (x_training_data_0, y_training_data_0),
     #"validation1": (x_validation_data_1, y_validation_data_1),
 }
 

@@ -949,6 +949,7 @@ class FishProcedure(Procedure):
             dw_list_cpy = [param[0] for param in model_params_cpy]
             db_list_cpy = [param[1] for param in model_params_cpy]
             gradients = tape.gradient(loss, dw_list_cpy + db_list_cpy)
+
             for i in range(len(dw_list_cpy)):
                 dw = gradients[i]
                 db = gradients[len(dw_list_cpy) + i]
@@ -1356,6 +1357,7 @@ class AbstractSearch:
 
     @staticmethod
     def _build_model(predictor_count: int, class_count, configuration: Configuration) -> Layer:
+        print(configuration.as_string())
         model = []
         cur_in = predictor_count
         configuration.neuron_count_list[0] = predictor_count
