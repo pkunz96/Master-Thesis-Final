@@ -32,7 +32,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
     suffix = "insertion_sort"
 
-    base_dir = "./dipe_" + suffix + "_" + str(sample_size) + "_ablation_bottleneck"
+    base_dir = "./dipe_" + suffix + "_" + str(sample_size) + "_ablation_contrastive_loss"
 
     sorting_algorithm = straight_insertion_sort
 
