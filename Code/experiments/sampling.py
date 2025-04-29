@@ -65,7 +65,7 @@ class MonteCarloSampling:
             return np.load(predictor_file_name), np.load(response_file_name)
         return None, None
 
-    sample_size = 10**6
+    sample_size = 10**3
 
     def __init__(self, parameter_set: ParameterSet, sort: Callable[[Environment], List[int]], create_environment: Callable[[List[int]], Environment]):
         self.parameter_set: ParameterSet = parameter_set

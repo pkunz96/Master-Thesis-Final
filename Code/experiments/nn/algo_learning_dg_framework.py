@@ -174,7 +174,14 @@ def categorical_cross_entropy_loss(out_val: tf.Tensor, x: tf.Tensor, x_index: tf
     return tf.keras.losses.CategoricalCrossentropy(from_logits=False)(out_val, y)
 
 
+def binary_representation_loss_original(out_val: tf.Tensor, x: tf.Tensor, x_index: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+    binary_loss = tf.math.log((tf.reduce_sum(tf.square(tf.subtract(out_val, 1)) * tf.square(out_val))) + tf.constant(1.0))
+    return binary_loss
+
+
 def binary_representation_loss(out_val: tf.Tensor, x: tf.Tensor, x_index: tf.Tensor, y: tf.Tensor) -> tf.Tensor:
+#    noise = tf.convert_to_tensor(np.random.normal(loc=0.0, scale=0.5, size=out_val.shape), dtype=out_val.dtype)
+#    binary_loss = tf.math.log((tf.reduce_sum(tf.square(tf.subtract(out_val, 1)) * (tf.square(out_val) + noise))) + tf.constant(1.0))
     binary_loss = tf.math.log((tf.reduce_sum(tf.square(tf.subtract(out_val, 1)) * tf.square(out_val))) + tf.constant(1.0))
     return binary_loss
 
