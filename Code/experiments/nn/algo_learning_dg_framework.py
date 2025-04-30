@@ -1324,7 +1324,7 @@ class Configuration:
         self.forwarding_list: List[bool] = forwarding_list
         self.binary_layer_list: List[bool] = binary_layer_list
     def as_string(self):
-        return str(self.neuron_count_list) + "_" + str(self.activation_func_list) + "_" + str(self.loss_funct_list) + "_" + str(self.forwarding_list)
+        return str(self.neuron_count_list) + "_" + str(self.activation_func_list) + "_" + str(self.loss_funct_list)
 
 
 class Hyperparameters:
