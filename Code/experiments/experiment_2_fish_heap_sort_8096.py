@@ -6,6 +6,10 @@ import tensorflow as tf
 from matplotlib import pyplot as plt
 from numpy._typing import NDArray
 
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import MinMaxScaler
 from skopt.space import Categorical

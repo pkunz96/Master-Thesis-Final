@@ -4,6 +4,9 @@ from typing import Callable, List, Tuple, Dict, Optional
 
 import numpy as np
 from kneed import KneeLocator
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import tensorflow as tf
 from matplotlib import pyplot as plt

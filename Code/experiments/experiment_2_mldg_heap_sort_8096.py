@@ -1,7 +1,8 @@
 from itertools import product
 from typing import Callable, List, Tuple, Dict, Optional
 from kneed import KneeLocator
-
+import sys
+import os
 import tensorflow as tf
 from matplotlib import pyplot as plt
 from numpy._typing import NDArray
@@ -9,6 +10,8 @@ from numpy._typing import NDArray
 from sklearn.cluster import KMeans
 from sklearn.preprocessing import MinMaxScaler
 from skopt.space import Categorical
+# Add the project root (../ from experiments) to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 from sampling import ParameterSet
 
