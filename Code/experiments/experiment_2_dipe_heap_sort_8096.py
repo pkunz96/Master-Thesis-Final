@@ -4,6 +4,9 @@ from typing import Callable, List, Tuple, Dict, Optional
 
 import numpy as np
 from kneed import KneeLocator
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
 import tensorflow as tf
 from matplotlib import pyplot as plt
@@ -84,7 +87,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
     def _build_search_space(self) -> List[Tuple[Configuration, Hyperparameters]]:
         search_space = []
 
-        binary_embedding_dim: int = 3  # Two predicates plus the state.
+        binary_embedding_dim: int = 15  # Two predicates plus the state.
 
         for first_extractor_neuron_count_exp in range(7, 11):
             for predictor_neuron_count_exp in range(5, 7):

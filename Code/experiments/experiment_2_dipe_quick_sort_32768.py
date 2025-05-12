@@ -83,7 +83,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
     def _build_search_space(self) -> List[Tuple[Configuration, Hyperparameters]]:
         search_space = []
 
-        binary_embedding_dim: int = 3  # Two predicates plus the state.
+        binary_embedding_dim: int = 5  # Two predicates plus the state.
 
         for first_extractor_neuron_count_exp in range(7, 11):
             for predictor_neuron_count_exp in range(5, 7):
