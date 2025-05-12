@@ -683,8 +683,8 @@ class Procedure:
         self.accuracy_ax.relim()
         self.accuracy_ax.autoscale_view()
 
-        plt.draw()
-        plt.pause(0.1)
+        #  plt.draw()
+        #plt.pause(0.1)
 
     def clear(self):
         self.epoch_arr: List[int] = []
