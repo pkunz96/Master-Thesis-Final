@@ -13,7 +13,7 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import MinMaxScaler
 from skopt.space import Categorical
 
-from sampling import ParameterSet
+from experiments.sampling import ParameterSet
 
 from algorithms.straight_insertion_sort import straight_insertion_sort, gen_insertion_sort_environment
 
