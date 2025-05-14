@@ -19,7 +19,7 @@ from algorithms.straight_insertion_sort import straight_insertion_sort, gen_inse
 
 from experiments.nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
-    create_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
+    create_contrastive_loss, create_disabled_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
     HyperoptBayesianSearch, disabled_binary_representation_loss
 
 from sklearn.metrics import silhouette_score
