@@ -58,7 +58,26 @@ class MonteCarloSampling:
         return np.array(predictor_list[index], dtype=np.int16), np.array(response_list[index], dtype=np.int16)
 
     @staticmethod
+    def ensure_experiments_dir():
+        current_dir = os.getcwd()
+        dir_name = os.path.basename(current_dir)
+        if dir_name == 'experiments':
+            print(f"Already in 'experiments' directory: {current_dir}")
+            return
+        # Search upwards for an 'experiments' directory
+        path = current_dir
+        while path != os.path.dirname(path):  # Until reaching root
+            potential_path = os.path.join(path, 'experiments')
+            if os.path.isdir(potential_path):
+                os.chdir(potential_path)
+                print(f"Changed working directory to: {potential_path}")
+                return
+            path = os.path.dirname(path)
+        raise FileNotFoundError("'experiments' directory not found in current or parent directories.")
+
+    @staticmethod
     def _load_data(parameter_set: ParameterSet) -> Tuple[Optional[NDArray], Optional[NDArray]]:
+        MonteCarloSampling.ensure_experiments_dir()
         predictor_file_name = "./data_sampling/" + parameter_set.as_str() + "_pred.npy"
         response_file_name = "./data_sampling/" + parameter_set.as_str() + "_response.npy"
         if os.path.exists(predictor_file_name) and os.path.exists(response_file_name):
