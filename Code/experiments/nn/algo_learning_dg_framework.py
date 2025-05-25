@@ -1557,7 +1557,6 @@ class AbstractSearch:
         ax.set_ylabel(y_label)
         ax.set_title(title)
         ax.plot(list(range(1, len(tensor_list) + 1)), tensor_list, label=label, marker='o')
-        ax.legend()
         return fig, ax
 
     @staticmethod

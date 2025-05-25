@@ -20,7 +20,7 @@ from algorithms.straight_insertion_sort import straight_insertion_sort, gen_inse
 from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
     create_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
-    HyperoptBayesianSearch
+    HyperoptBayesianSearch, create_disabled_contrastive_loss
 
 from sklearn.metrics import silhouette_score
 
@@ -32,7 +32,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
     suffix = "insertion_sort"
 
-    base_dir = "./dipe_" + suffix + "_" + str(sample_size)
+    base_dir = "./dipe_" + suffix + "_" + str(sample_size) + "_ablation_erm"
 
     sorting_algorithm = straight_insertion_sort
 
@@ -112,8 +112,8 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
                     for activation_func_list in list(product(["relu", "sigmoid"], repeat=layer_count)):
                         activation_func_list = activation_func_list + ("softmax",)
                         for learning_rate in [0.01, 0.001, 0.0001]:
-                            for beta in [0.001, 0.0001]:
-                                for gamma in [0.001, 0.0001]:
+                            for beta in [1]:
+                                for gamma in [1]:
                                     search_space.append((Configuration(neuron_count_arr, activation_func_list, loss_func_arr, forwarding_arr, binary_arr), Hyperparameters(learning_rate, beta, gamma, 1000, 64, "adam", 50, sample_size=DIPEInsertionSortSearch.sample_size, iterations=5)))
         print("Search Space Size: " + str(len(search_space)))
         return search_space
@@ -132,7 +132,9 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
             if cur_layer is not None:
                 cur_layer.loss_function = binary_representation_loss
                 cur_layer.loss_weight = tf.constant(1.0)
-            return MLDGProcedure(model, training_data_dict, validation_data_dict, test_data_dict, epochs=hyperparameters.epochs, batch_size=hyperparameters.batch_size, optimizer=hyperparameters.optimizer, early_stopping=hyperparameters.early_stopping,  alpha = hyperparameters.alpha, beta = hyperparameters.beta, gamma = hyperparameters.gamma)
+
+            return Procedure(model, training_data_dict, validation_data_dict, test_data_dict, epochs=hyperparameters.epochs, learning_rate=hyperparameters.alpha, batch_size=hyperparameters.batch_size, optimizer=hyperparameters.optimizer, early_stopping=hyperparameters.early_stopping)
+
         return pretraining
 
     def _create_subsequent_procedure_builders(self, hyperparameters: Hyperparameters, training_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], validation_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], test_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]]) -> List[Callable[[Procedure], Procedure]]:
@@ -152,39 +154,8 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
             if last_extractor_layer is not None:
                 predictor_first_layer: Layer = last_extractor_layer.successor
-                last_extractor_layer.successor = None
-                last_extractor_layer.loss_weight = tf.constant(1.0)
 
-                x_data, y_data = Procedure.merge_training_data_dict(training_data_dict)
-
-                predictions = first_layer.predict(x_data)
-
-                inertia = []
-                labels = []
-                models = []
-                k_range = list(range(2, 10))
-
-                optimal_k = None
-                for k in k_range:
-                    kmeans = KMeans(n_clusters=k, random_state=42)
-                    kmeans.fit(predictions)
-                    inertia.append(kmeans.inertia_)
-                    labels.append(kmeans.labels_)
-                    models.append(kmeans)
-
-                kneedle = KneeLocator(k_range, inertia, curve="convex", direction="decreasing")
-                optimal_k = kneedle.elbow
-
-                if optimal_k is None:
-                    silhouette_scores = []
-                    for model in models:
-                        score = -1.0
-                        if len(np.unique(labels)) > 1:
-                            score = silhouette_score(predictions, model.labels_)
-                        silhouette_scores.append(score)
-                    optimal_k = k_range[silhouette_scores.index(max(silhouette_scores))]
-
-                contrastive_loss_function: Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor] = create_contrastive_loss(labels[optimal_k - 1], 1.5)
+                contrastive_loss_function: Callable[[tf.Tensor, tf.Tensor, tf.Tensor], tf.Tensor] = create_disabled_contrastive_loss([], None)
 
                 last_extractor_layer.loss_function = contrastive_loss_function
                 last_extractor_layer.successor = predictor_first_layer
@@ -197,8 +168,6 @@ gpus = tf.config.list_physical_devices('GPU')
 if gpus:
     for gpu in gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
-
-
 
 
 DIPEInsertionSortSearch().search()

@@ -20,7 +20,7 @@ from algorithms.straight_insertion_sort import straight_insertion_sort, gen_inse
 from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
     create_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
-    HyperoptBayesianSearch
+    HyperoptBayesianSearch, disabled_binary_representation_loss
 
 from sklearn.metrics import silhouette_score
 
@@ -32,7 +32,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
 
     suffix = "insertion_sort"
 
-    base_dir = "./dipe_" + suffix + "_" + str(sample_size)
+    base_dir = "./dipe_" + suffix + "_" + str(sample_size) + "_ablation_contrastive_loss"
 
     sorting_algorithm = straight_insertion_sort
 
@@ -89,16 +89,17 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
             for predictor_neuron_count_exp in range(5, 7):
                 for hidden_extractor_layer_count in range(1, 3):
                     first_hidden_extractor_layer_size = 2**first_extractor_neuron_count_exp
-                    extract_neuron_count_arr = [first_hidden_extractor_layer_size - x * ceil((first_hidden_extractor_layer_size - binary_embedding_dim) / hidden_extractor_layer_count) for x in range(0, hidden_extractor_layer_count + 1)]
-                    extract_neuron_count_arr[len(extract_neuron_count_arr) - 1] = binary_embedding_dim
+                    extract_neuron_count_arr = [first_hidden_extractor_layer_size for x in range(0, hidden_extractor_layer_count + 1)]
+
                     predictor_neuron_count_arr = [2**predictor_neuron_count_exp for x in range(2)]
+
                     neuron_count_arr = [1] + extract_neuron_count_arr + predictor_neuron_count_arr + [1]
                     loss_func_arr = []
                     forwarding_arr = []
                     binary_arr = []
                     for layer_index in range(len(neuron_count_arr)):
                         if layer_index == len(extract_neuron_count_arr):
-                            loss_func_arr.append(binary_representation_loss)
+                            loss_func_arr.append(disabled_binary_representation_loss)
                         elif layer_index == len(neuron_count_arr) - 1:
                             loss_func_arr.append(categorical_cross_entropy_loss)
                         else:
@@ -132,7 +133,9 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
             if cur_layer is not None:
                 cur_layer.loss_function = binary_representation_loss
                 cur_layer.loss_weight = tf.constant(1.0)
+
             return MLDGProcedure(model, training_data_dict, validation_data_dict, test_data_dict, epochs=hyperparameters.epochs, batch_size=hyperparameters.batch_size, optimizer=hyperparameters.optimizer, early_stopping=hyperparameters.early_stopping,  alpha = hyperparameters.alpha, beta = hyperparameters.beta, gamma = hyperparameters.gamma)
+
         return pretraining
 
     def _create_subsequent_procedure_builders(self, hyperparameters: Hyperparameters, training_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], validation_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]], test_data_dict: Dict[str, Tuple[tf.Tensor, tf.Tensor]]) -> List[Callable[[Procedure], Procedure]]:
@@ -197,8 +200,6 @@ gpus = tf.config.list_physical_devices('GPU')
 if gpus:
     for gpu in gpus:
         tf.config.experimental.set_memory_growth(gpu, True)
-
-
 
 
 DIPEInsertionSortSearch().search()
