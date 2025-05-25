@@ -13,13 +13,14 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import MinMaxScaler
 from skopt.space import Categorical
 
-from sampling import ParameterSet
+
+from experiments.sampling import ParameterSet
 
 from algorithms.straight_insertion_sort import straight_insertion_sort, gen_insertion_sort_environment
 
-from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
+from experiments.nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
-    create_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
+    create_contrastive_loss, create_disabled_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
     HyperoptBayesianSearch, disabled_binary_representation_loss
 
 from sklearn.metrics import silhouette_score

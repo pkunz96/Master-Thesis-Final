@@ -99,6 +99,7 @@ def estimate_sample_size(param_set_list, epsilon) -> int:
                 outer_joint_density, outer_predictor_density = map_sample_to_density_kde_safe(pred_arr_0, resp_arr_0)
                 inner_joint_density, inner_predictor_density = map_sample_to_density_kde_safe(pred_arr_1, resp_arr_1)
                 distance = calc_jensen_shannon_divergence(outer_joint_density, inner_joint_density)
+                print(sample_size)
                 if distance >= epsilon:
                     found = False
                     break
@@ -126,6 +127,8 @@ def measure_distance(param_set_list: List[ParameterSet], sample_size: int) -> ND
                 outer_joint_density, outer_predictor_density = map_sample_to_density_kde_safe(outer_predictor_arr, outer_response_arr)
                 inner_joint_density, inner_predictor_density = map_sample_to_density_kde_safe(inner_predictor_arr, inner_response_arr)
                 distance = calc_jensen_shannon_divergence(outer_joint_density, inner_joint_density)
+                distance = calc_jensen_shannon_divergence(outer_predictor_density, inner_predictor_density)
+
                 distance_map_data[out_param_index].append(distance)
     return np.array(distance_map_data)
 
@@ -151,10 +154,16 @@ def save_and_visualize(param_set_list: List[ParameterSet], distance_matrix: NDAr
 
 print(1)
 
-epsilon = 0.01
+epsilon = 0.6
 
 print(2)
 parameter_set_list = create_parameter_sets(0, 10, 10, 0, 10, 10)
+for param_set in parameter_set_list:
+    print("problem_mu: " + str(param_set.problem_mu))
+    print("problem_sigma: " + str(param_set.problem_sigma))
+    print("problem_size_mu: " + str(param_set.problem_size_mu))
+    print("problem_size_sigma: " + str(param_set.problem_size_sigma))
+    print("")
 
 print(3)
 estimated_sample_size = estimate_sample_size(parameter_set_list, epsilon)

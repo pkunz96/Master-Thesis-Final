@@ -13,14 +13,15 @@ from sklearn.cluster import KMeans
 from sklearn.preprocessing import MinMaxScaler
 from skopt.space import Categorical
 
-from sampling import ParameterSet
+
+from experiments.sampling import ParameterSet
 
 from algorithms.straight_insertion_sort import straight_insertion_sort, gen_insertion_sort_environment
 
-from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
+from experiments.nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
     create_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \
-    HyperoptBayesianSearch, create_disabled_contrastive_loss
+    HyperoptBayesianSearch, disabled_binary_representation_loss
 
 from sklearn.metrics import silhouette_score
 
@@ -163,6 +164,7 @@ class DIPEInsertionSortSearch(HyperoptBayesianSearch):
                 return Procedure(first_layer, training_data_dict, validation_data_dict, test_data_dict, epochs=hyperparameters.epochs, learning_rate=hyperparameters.alpha, batch_size=hyperparameters.batch_size, optimizer=hyperparameters.optimizer, cache_validation_data=False)
 
         return [fine_tuning]
+
 
 gpus = tf.config.list_physical_devices('GPU')
 if gpus:
