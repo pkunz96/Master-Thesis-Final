@@ -84,8 +84,6 @@ class MonteCarloSampling:
             return np.load(predictor_file_name), np.load(response_file_name)
         return None, None
 
-    sample_size = 10**6
-
     def __init__(self, parameter_set: ParameterSet, sort: Callable[[Environment], List[int]], create_environment: Callable[[List[int]], Environment]):
         self.parameter_set: ParameterSet = parameter_set
         self.sort: Callable[[Environment], List[int]] = sort
@@ -108,18 +106,20 @@ class MonteCarloSampling:
     def _init_state_suc_dict(self):
         return self.computation_state_successor_dict
 
-    def init(self, caching: bool = True):
+    def init(self, caching: bool = True, sampling_size: int = 10**6):
         directory = "./data_sampling/"
         os.makedirs(directory, exist_ok=True)
-        predictor_arr, response_arr = MonteCarloSampling._load_data(self.parameter_set)
-        if predictor_arr is None or not caching:
+        predictor_arr, response_arr = None, None
+        if caching is True:
+            predictor_arr, response_arr = MonteCarloSampling._load_data(self.parameter_set)
+        if predictor_arr is None:
             for i in range(0, 30):
                 MonteCarloSampling._generate_state_successor_dict(self._sample_execution(), self.computation_state_successor_dict)
             computation_state_successor_dict = self._init_state_suc_dict()
             sampled_count = 0
             start_time = time.time()
-            while predictor_arr is None or sampled_count < MonteCarloSampling.sample_size:
-                thread_count = min([5, MonteCarloSampling.sample_size - sampled_count])
+            while predictor_arr is None or sampled_count < sampling_size:
+                thread_count = min([5, sampling_size - sampled_count])
                 result_queue = queue.Queue()
                 thread_list = []
                 for i in range(0, thread_count):
@@ -143,9 +143,9 @@ class MonteCarloSampling:
                 cur_time = time.time()
                 samples_per_time = sampled_count / (cur_time - start_time)
                 print("------ Round ------")
-                print(self.parameter_set.as_str() + ": " + str(round(sampled_count / MonteCarloSampling.sample_size, 8)*100) + " % (" + str(sampled_count) + "/" + str(MonteCarloSampling.sample_size) + ")" )
+                print(self.parameter_set.as_str() + ": " + str(round(sampled_count / sampling_size, 8)*100) + " % (" + str(sampled_count) + "/" + str(MonteCarloSampling.sample_size) + ")" )
                 print("Samples per time: " + str(samples_per_time) + "/s")
-                print("Time remaining: " + str(((MonteCarloSampling.sample_size - sampled_count) / samples_per_time) / (24 * 3600)) + " days")
+                print("Time remaining: " + str(((sampling_size- sampled_count) / samples_per_time) / (24 * 3600)) + " days")
                 print("\n\n")
             np.save(directory + self.parameter_set.as_str() + "_pred.npy", predictor_arr)
             np.save(directory + self.parameter_set.as_str() + "_response.npy", response_arr)
