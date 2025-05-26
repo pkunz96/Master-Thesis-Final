@@ -14,48 +14,38 @@ from scipy.stats import gaussian_kde
 
 from algorithms.straight_insertion_sort import gen_insertion_sort_environment, straight_insertion_sort
 from experiments.sampling import ParameterSet, MonteCarloSampling
+import cupy
+from cuml import KernelDensity
+
+def project_svd(cuda_arr: cupy.ndarry) -> cupy.ndarry:
+    centered = cuda_arr - cupy.mean(cuda_arr, axis=0)
+    u, s, vh = cupy.linalg.svd(centered, full_matrices=False)
+    rank = cupy.sum(s > 1e-10)
+    reduced = centered @ vh[:rank].T
+    return reduced
 
 
-def map_sample_to_density_kde_safe( predictor_arr:  NDArray, response_arr: NDArray, decimals: int = 0) -> Tuple[Dict[Tuple[int], float], Dict[Tuple[int], float]]:
-
-    joint_arr = np.hstack((predictor_arr, response_arr))
-
-    def full_rank_subset(arr: np.ndarray) -> np.ndarray:
-        # Select maximal linearly independent subset of features
-        u, s, vh = np.linalg.svd(arr - arr.mean(axis=0), full_matrices=False)
-        rank = np.sum(s > 1e-10)
-        return arr @ vh[:rank].T  # project to full-rank subspace
-
+def estimate_density(np_arr: NDArray, decimals: int = 0) -> Dict[Tuple[int], float]:
+    cuda_arr = cupy.asarray(np_arr)
     try:
-        joint_kde = gaussian_kde(joint_arr.T)
-        joint_pdf = joint_kde(joint_arr.T)
-    except np.linalg.LinAlgError:
-        reduced_joint = full_rank_subset(joint_arr)
-        joint_kde = gaussian_kde(reduced_joint.T)
-        joint_pdf = joint_kde(reduced_joint.T)
-
-    try:
-        predictor_kde = gaussian_kde(predictor_arr.T)
-        predictor_pdf = predictor_kde(predictor_arr.T)
-    except np.linalg.LinAlgError:
-        reduced_predictor = full_rank_subset(predictor_arr)
-        predictor_kde = gaussian_kde(reduced_predictor.T)
-        predictor_pdf = predictor_kde(reduced_predictor.T)
-
-    joint_pdf /= joint_pdf.sum()
-    predictor_pdf /= predictor_pdf.sum()
-
-    def arr_to_dict(arr, pdf) -> Dict[Tuple[int], float]:
-        d = {}
-        for row, prob in zip(arr, pdf):
-            key = tuple(np.round(row, decimals=decimals).astype(int))
-            d[key] = d.get(key, 0.0) + float(prob)
-        return d
-
-    joint_dict = arr_to_dict(joint_arr, joint_pdf)
-    predictor_dict = arr_to_dict(predictor_arr, predictor_pdf)
-
-    return joint_dict, predictor_dict
+        kde = KernelDensity()
+        kde.fit(cuda_arr)
+        log_pdf_cp = kde.score_samples(cuda_arr)
+        pdf_cp = cupy.exp(log_pdf_cp)
+    except Exception:
+        reduced_arr = project_svd(cuda_arr)
+        kde = KernelDensity()
+        kde.fit(reduced_arr)
+        log_pdf_cp = kde.score_samples(reduced_arr)
+        pdf_cp = cupy.exp(log_pdf_cp)
+    pdf_cp /= cupy.sum(pdf_cp)
+    np_arr = cupy.asnumpy(cuda_arr)
+    pdf_cpu = cupy.asnumpy(pdf_cp)
+    d: Dict[Tuple[int], float] = {}
+    for row, prob in zip(np_arr, pdf_cpu):
+        key = tuple(np.round(row, decimals=decimals).astype(int))
+        d[key] = d.get(key, 0.0) + float(prob)
+    return d
 
 
 def calc_jensen_shannon_divergence(dens_0: Dict[Tuple[int], float], dens_1: Dict[Tuple[int], float]) -> float:
@@ -91,14 +81,14 @@ def estimate_sample_size(param_set_list, epsilon) -> int:
         for param_set in param_set_list:
             for index in range(5):
                 mcs_0: MonteCarloSampling = MonteCarloSampling(param_set, straight_insertion_sort, gen_insertion_sort_environment)
-                mcs_0.init(caching=False)
+                mcs_0.init(caching=False, sampling_size=sample_size)
                 mcs_1: MonteCarloSampling = MonteCarloSampling(param_set, straight_insertion_sort, gen_insertion_sort_environment)
-                mcs_1.init(caching=False)
+                mcs_1.init(caching=False, sampling_size=sample_size)
                 pred_arr_0, resp_arr_0 = mcs_0.sample(sample_size)
                 pred_arr_1, resp_arr_1 = mcs_1.sample(sample_size)
-                outer_joint_density, outer_predictor_density = map_sample_to_density_kde_safe(pred_arr_0, resp_arr_0)
-                inner_joint_density, inner_predictor_density = map_sample_to_density_kde_safe(pred_arr_1, resp_arr_1)
-                distance = calc_jensen_shannon_divergence(outer_joint_density, inner_joint_density)
+                outer_predictor_density = estimate_density(pred_arr_0)
+                inner_predictor_density = estimate_density(pred_arr_1)
+                distance = calc_jensen_shannon_divergence(outer_predictor_density, inner_predictor_density)
                 print(sample_size)
                 print(distance)
                 if distance >= epsilon:
@@ -121,13 +111,12 @@ def measure_distance(param_set_list: List[ParameterSet], sample_size: int) -> ND
                 inner_param_set = param_set_list[inner_param_index]
                 mcs_out: MonteCarloSampling = MonteCarloSampling(outer_param_set, straight_insertion_sort, gen_insertion_sort_environment)
                 mcs_in: MonteCarloSampling = MonteCarloSampling(inner_param_set, straight_insertion_sort, gen_insertion_sort_environment)
-                mcs_out.init(caching=False)
-                mcs_in.init(caching=False)
+                mcs_out.init(caching=False, sampling_size=sample_size)
+                mcs_in.init(caching=False,  sampling_size=sample_size)
                 outer_predictor_arr, outer_response_arr = mcs_out.sample(sample_size)
                 inner_predictor_arr, inner_response_arr = mcs_in.sample(sample_size)
-                outer_joint_density, outer_predictor_density = map_sample_to_density_kde_safe(outer_predictor_arr, outer_response_arr)
-                inner_joint_density, inner_predictor_density = map_sample_to_density_kde_safe(inner_predictor_arr, inner_response_arr)
-                distance = calc_jensen_shannon_divergence(outer_joint_density, inner_joint_density)
+                outer_predictor_density = estimate_density(outer_predictor_arr)
+                inner_predictor_density = estimate_density(inner_predictor_arr)
                 distance = calc_jensen_shannon_divergence(outer_predictor_density, inner_predictor_density)
 
                 distance_map_data[out_param_index].append(distance)

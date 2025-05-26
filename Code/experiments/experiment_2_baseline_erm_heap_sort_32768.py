@@ -13,7 +13,7 @@ from skopt.space import Categorical
 from sampling import ParameterSet
 
 from algorithms.heap_sort import heap_sort, gen_heap_sort_environment
-
+from alg
 from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
     binary_representation_loss, \
     create_contrastive_loss, BinaryLayer, AbstractSearch, BayesianSearch, Hyperparameters, Configuration, MLDGProcedure, \

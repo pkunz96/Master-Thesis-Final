@@ -12,6 +12,7 @@ from skopt.space import Categorical
 
 from sampling import ParameterSet
 
+
 from algorithms.heap_sort import heap_sort, gen_heap_sort_environment
 
 from nn.algo_learning_dg_framework import Layer, Procedure, categorical_cross_entropy_loss, \
