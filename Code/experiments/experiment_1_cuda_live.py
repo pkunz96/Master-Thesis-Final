@@ -10,7 +10,6 @@ import numpy as np
 from numpy.typing import NDArray
 
 from scipy.spatial.distance import jensenshannon
-from scipy.stats import gaussian_kde
 
 from algorithms.straight_insertion_sort import gen_insertion_sort_environment, straight_insertion_sort
 from experiments.sampling import ParameterSet, MonteCarloSampling
@@ -79,10 +78,20 @@ def calc_jensen_shannon_divergence(dens_0: Dict[Tuple[int], float], dens_1: Dict
             dens_1_mass_vector.append(dens_1[key])
         else:
             dens_1_mass_vector.append(0.0)
-    return jensenshannon(np.array(dens_0_mass_vector, dtype=np.float64), np.array(dens_1_mass_vector, dtype=np.float64), base=2)
+    return jensenshannon(
+        np.array(dens_0_mass_vector, dtype=np.float64),
+        np.array(dens_1_mass_vector, dtype=np.float64), base=2
+    )
 
 
-def create_parameter_sets(min_mu: int, max_mu: int, mu_step_size: int, min_sigma: int, max_sigma: int, sigma_step_size: int) -> List[ParameterSet]:
+def create_parameter_sets(
+        min_mu: int,
+        max_mu: int,
+        mu_step_size: int,
+        min_sigma: int,
+        max_sigma: int,
+        sigma_step_size: int
+) -> List[ParameterSet]:
     param_set_list = []
     for mu in range(min_mu,  max_mu + 1, mu_step_size):
         for sigma in range(min_sigma, max_sigma + 1, sigma_step_size):
@@ -90,7 +99,13 @@ def create_parameter_sets(min_mu: int, max_mu: int, mu_step_size: int, min_sigma
     return param_set_list
 
 
-def sample(parameter_set: ParameterSet, sample_size: int, algorithm, environment, error_estimate_count: int) -> Tuple[Dict[Tuple[int], float], float]:
+def sample(
+        parameter_set: ParameterSet,
+        sample_size: int,
+        algorithm,
+        environment,
+        error_estimate_count: int
+) -> Tuple[Dict[Tuple[int], float], float]:
     density: Dict[Tuple[int], float] = {}
     error: float = 0.0
     for index in range(error_estimate_count):
@@ -126,12 +141,14 @@ def measure_distance(
         print("Estimating JS Divergence for sample_size = " + str(sample_size))
         for out_param_index in range(len(param_set_list)):
             distance_map.append([])
-            outer_density, outer_density_error = sample(param_set_list[out_param_index], sample_size, algorithm, environment, error_estimate_count)
+            outer_density, outer_density_error\
+                = sample(param_set_list[out_param_index], sample_size, algorithm, environment, error_estimate_count)
             for inner_param_index in range(len(param_set_list)):
                 if inner_param_index < out_param_index:
                     distance_map[out_param_index].append(np.nan)
                 else:
-                    inner_density, inner_density_error = sample(param_set_list[inner_param_index], sample_size, algorithm, environment, error_estimate_count)
+                    inner_density, inner_density_error \
+                        = sample(param_set_list[inner_param_index], sample_size, algorithm, environment, error_estimate_count)
                     distance = calc_jensen_shannon_divergence(outer_density, inner_density)
                     error = max([outer_density_error, inner_density_error, error])
                     distance_map[out_param_index].append(distance)
@@ -151,13 +168,26 @@ def create_on_completed(base_dir: str):
     base_dir += (str(time.time()) + "/")
     os.makedirs(base_dir, exist_ok=True)
 
-    def on_completed(parameter_set_list: List[ParameterSet], sample_size: int, error: float, distance_map: NDArray) -> None:
+    def on_completed(
+            parameter_set_list: List[ParameterSet],
+            sample_size: int,
+            error: float,
+            distance_map: NDArray
+    ) -> None:
         print("A sample size of " + str(sample_size) + "resulted in an error of " + str(error) + ".")
-        labels = ["μ=" + str(param_set.problem_mu) + "_σ=" + str(param_set.problem_sigma) for param_set in parameter_set_list]
+        labels = ["μ=" + str(param_set.problem_mu) + "_σ=" + str(param_set.problem_sigma)
+                  for param_set in parameter_set_list]
         filename = base_dir + "experiment_1_live_sample_size_" + str(sample_size) +"_error_" + str(error)
 
         plt.figure(figsize=(12, 10))
-        sns.heatmap(distance_map, xticklabels=labels, yticklabels=labels, annot=False, cmap='viridis', mask=np.isnan(distance_map), cbar_kws={'label': 'Jensen-Shannon Divergence (ε=' + str(round(error, 5)) + ', sample_size=' + str(sample_size) + ')'})
+        sns.heatmap(
+            distance_map,
+            xticklabels=labels,
+            yticklabels=labels,
+            annot=False,
+            cmap='viridis',
+            mask=np.isnan(distance_map),
+            cbar_kws={'label': 'Jensen-Shannon Divergence (ε=' + str(round(error, 5)) + ', sample_size=' + str(sample_size) + ')'})
         plt.xticks(rotation=90)
         plt.yticks(rotation=0)
         plt.tight_layout()
