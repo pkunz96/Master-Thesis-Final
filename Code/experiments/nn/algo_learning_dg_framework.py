@@ -972,7 +972,6 @@ class FishProcedure(Procedure):
                     dw_list_cpy[i].assign_sub(self.alpha * dw)
                 if db is not None:
                     db_list_cpy[i].assign_sub(self.alpha * db)
-            #self.optimizer.apply_gradients(zip(gradients, dw_list_cpy + db_list_cpy))
             del tape
         current_layer = self.layer
         current_cpy_layer = self.model_cpy
