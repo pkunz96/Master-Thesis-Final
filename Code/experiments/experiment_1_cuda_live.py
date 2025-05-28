@@ -147,7 +147,7 @@ def create_on_completed(base_dir: str):
     return on_completed
 
 
-parameter_set_list = create_parameter_sets(0, 10, 10, 0, 10, 10)
+parameter_set_list = create_parameter_sets(0, 4, 2, 1, 2, 1)
 
 measure_distance(
         parameter_set_list,
