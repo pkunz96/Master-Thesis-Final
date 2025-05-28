@@ -17,6 +17,14 @@ from experiments.sampling import ParameterSet, MonteCarloSampling
 import cupy
 from cuml import KernelDensity
 
+
+def silverman_bandwidth(np_arr: NDArray) -> float:
+    n, d = np_arr.shape
+    averaged_standard_deviation = np.mean( np.std(np_arr, axis=0, ddof=1))
+    h = ((4 / (d + 2)) ** (1 / (d + 4))) * n ** (-1 / (d + 4)) * averaged_standard_deviation
+    return h
+
+
 def project_svd(cuda_arr: cupy.ndarray) -> cupy.ndarray:
     centered = cuda_arr - cupy.mean(cuda_arr, axis=0)
     u, s, vh = cupy.linalg.svd(centered, full_matrices=False)
@@ -25,28 +33,46 @@ def project_svd(cuda_arr: cupy.ndarray) -> cupy.ndarray:
     return reduced
 
 
-def estimate_density(np_arr: NDArray, decimals: int = 0) -> Dict[Tuple[int], float]:
-    cuda_arr = cupy.asarray(np_arr)
+def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 512) -> Dict[Tuple[int], float]:
+    cuda_arr = cupy.asarray(np_arr).astype('float32')
+
+    def kde_score_in_batches(kde, data, batch_size):
+        results = []
+        for i in range(0, data.shape[0], batch_size):
+            batch = data[i:i+batch_size]
+            scores = kde.score_samples(batch)
+            results.append(scores)
+            cupy.get_default_memory_pool().free_all_blocks()  # Optional inside loop
+        return cupy.concatenate(results)
+
     try:
         kde = KernelDensity()
         kde.fit(cuda_arr)
-        log_pdf_cp = kde.score_samples(cuda_arr)
+        log_pdf_cp = kde_score_in_batches(kde, cuda_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
     except Exception:
-        reduced_arr = project_svd(cuda_arr)
+        reduced_arr = project_svd(cuda_arr).astype('float32')
         kde = KernelDensity()
         kde.fit(reduced_arr)
-        log_pdf_cp = kde.score_samples(reduced_arr)
+        log_pdf_cp = kde_score_in_batches(kde, reduced_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
+
+    # Normalize the PDF
     pdf_cp /= cupy.sum(pdf_cp)
+
+    # Prepare output as a dictionary
     np_arr = cupy.asnumpy(cuda_arr)
     pdf_cpu = cupy.asnumpy(pdf_cp)
     d: Dict[Tuple[int], float] = {}
+
     for row, prob in zip(np_arr, pdf_cpu):
         key = tuple(np.round(row, decimals=decimals).astype(int))
         d[key] = d.get(key, 0.0) + float(prob)
-    return d
 
+    # Final memory cleanup
+    cupy.get_default_memory_pool().free_all_blocks()
+
+    return d
 
 def calc_jensen_shannon_divergence(dens_0: Dict[Tuple[int], float], dens_1: Dict[Tuple[int], float]) -> float:
     joint_key_set = set(dens_0.keys()) | set(dens_1.keys())
@@ -63,14 +89,12 @@ def calc_jensen_shannon_divergence(dens_0: Dict[Tuple[int], float], dens_1: Dict
             dens_1_mass_vector.append(0.0)
     return jensenshannon(np.array(dens_0_mass_vector, dtype=np.float64), np.array(dens_1_mass_vector, dtype=np.float64), base=2)
 
-
 def create_parameter_sets(min_mu: int, max_mu: int, mu_step_size: int, min_sigma: int, max_sigma: int, sigma_step_size: int) -> List[ParameterSet]:
     param_set_list = []
     for mu in range(min_mu,  max_mu + 1, mu_step_size):
         for sigma in range(min_sigma, max_sigma + 1, sigma_step_size):
             param_set_list.append(ParameterSet(mu, sigma, 5, 0))
     return param_set_list
-
 
 def sample(parameter_set: ParameterSet, sample_size: int, algorithm, environment, error_estimate_count: int) -> Tuple[Dict[Tuple[int], float], float]:
     density: Dict[Tuple[int], float] = {}
@@ -99,12 +123,13 @@ def measure_distance(
         on_completed: Callable[[List[ParameterSet], int, float, NDArray], None] = None
 ) -> Dict[int, Tuple[float, NDArray]]:
     measurements_dict: Dict[int, Tuple[float, NDArray]] = {}
-    distance_map = []
     for sample_size_exp in range(min_sample_size_exp, max_sample_size_exp + 1):
         sample_size = 2**sample_size_exp
         error = 0.0
-        distance_map.append([])
+        distance_map = []
+        print("Estimating JS Divergence for sample_size = " + str(sample_size))
         for out_param_index in range(len(param_set_list)):
+            distance_map.append([])
             outer_density, outer_density_error = sample(param_set_list[out_param_index], sample_size, algorithm, environment, error_estimate_count)
             for inner_param_index in range(len(param_set_list)):
                 if inner_param_index < out_param_index:
@@ -129,11 +154,12 @@ def create_on_completed(base_dir: str):
     os.makedirs(base_dir, exist_ok=True)
 
     def on_completed(parameter_set_list: List[ParameterSet], sample_size: int, error: float, distance_map: NDArray) -> None:
+        print("A sample size of " + str(sample_size) + "resulted in an error of " + str(error) + ".")
         labels = ["μ=" + str(param_set.problem_mu) + "_σ=" + str(param_set.problem_sigma) for param_set in parameter_set_list]
         filename = base_dir + "experiment_1_live_sample_size_" + str(sample_size) +"_error_" + str(error)
 
         plt.figure(figsize=(12, 10))
-        sns.heatmap(distance_map, xticklabels=labels, yticklabels=labels, annot=False, cmap='viridis', mask=np.isnan(distance_map), cbar_kws={'label': 'Jensen-Shannon Divergence (ε=' + str(error) + ', sample_size=' + str(sample_size) + ')'})
+        sns.heatmap(distance_map, xticklabels=labels, yticklabels=labels, annot=False, cmap='viridis', mask=np.isnan(distance_map), cbar_kws={'label': 'Jensen-Shannon Divergence (ε=' + str(round(error, 5)) + ', sample_size=' + str(sample_size) + ')'})
         plt.xticks(rotation=90)
         plt.yticks(rotation=0)
         plt.tight_layout()
@@ -141,8 +167,6 @@ def create_on_completed(base_dir: str):
 
         df = pd.DataFrame(distance_map, index=labels, columns=labels)
         df.to_csv(filename + ".csv")
-
-        plt.show()
 
     return on_completed
 
