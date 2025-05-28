@@ -17,7 +17,14 @@ from experiments.sampling import ParameterSet, MonteCarloSampling
 import cupy
 from cuml import KernelDensity
 
-def project_svd(cuda_arr: cupy.ndarry) -> cupy.ndarry:
+def silverman_bandwidth(np_arr: NDArray) -> float:
+    n, d = np_arr.shape
+    averaged_standard_deviation = np.mean( np.std(np_arr, axis=0, ddof=1))
+    h = ((4 / (d + 2)) ** (1 / (d + 4))) * n ** (-1 / (d + 4)) * averaged_standard_deviation
+    return h
+
+
+def project_svd(cuda_arr: cupy.ndarray) -> cupy.ndarray:
     centered = cuda_arr - cupy.mean(cuda_arr, axis=0)
     u, s, vh = cupy.linalg.svd(centered, full_matrices=False)
     rank = cupy.sum(s > 1e-10)
@@ -25,16 +32,20 @@ def project_svd(cuda_arr: cupy.ndarry) -> cupy.ndarry:
     return reduced
 
 
-def estimate_density(np_arr: NDArray, decimals: int = 0) -> Dict[Tuple[int], float]:
+def estimate_density_old(np_arr: NDArray, decimals: int = 0) -> Dict[Tuple[int], float]:
     cuda_arr = cupy.asarray(np_arr)
     try:
-        kde = KernelDensity()
+        bandwidth = silverman_bandwidth(np_arr)
+        kde = KernelDensity(bandwidth=bandwidth)
+        cuda_arr = cuda_arr.astype('float32')
         kde.fit(cuda_arr)
         log_pdf_cp = kde.score_samples(cuda_arr)
         pdf_cp = cupy.exp(log_pdf_cp)
     except Exception:
         reduced_arr = project_svd(cuda_arr)
-        kde = KernelDensity()
+        bandwidth = silverman_bandwidth(cupy.asnumpy(reduced_arr))
+        kde = KernelDensity(bandwidth=bandwidth)
+        cuda_arr = cuda_arr.astype('float32')
         kde.fit(reduced_arr)
         log_pdf_cp = kde.score_samples(reduced_arr)
         pdf_cp = cupy.exp(log_pdf_cp)
@@ -45,8 +56,49 @@ def estimate_density(np_arr: NDArray, decimals: int = 0) -> Dict[Tuple[int], flo
     for row, prob in zip(np_arr, pdf_cpu):
         key = tuple(np.round(row, decimals=decimals).astype(int))
         d[key] = d.get(key, 0.0) + float(prob)
+    cupy.get_default_memory_pool().free_all_blocks()
     return d
 
+def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 512) -> Dict[Tuple[int], float]:
+    cuda_arr = cupy.asarray(np_arr).astype('float32')
+
+    def kde_score_in_batches(kde, data, batch_size):
+        results = []
+        for i in range(0, data.shape[0], batch_size):
+            batch = data[i:i+batch_size]
+            scores = kde.score_samples(batch)
+            results.append(scores)
+            cupy.get_default_memory_pool().free_all_blocks()  # Optional inside loop
+        return cupy.concatenate(results)
+
+    try:
+        kde = KernelDensity()
+        kde.fit(cuda_arr)
+        log_pdf_cp = kde_score_in_batches(kde, cuda_arr, batch_size)
+        pdf_cp = cupy.exp(log_pdf_cp)
+    except Exception:
+        reduced_arr = project_svd(cuda_arr).astype('float32')
+        kde = KernelDensity()
+        kde.fit(reduced_arr)
+        log_pdf_cp = kde_score_in_batches(kde, reduced_arr, batch_size)
+        pdf_cp = cupy.exp(log_pdf_cp)
+
+    # Normalize the PDF
+    pdf_cp /= cupy.sum(pdf_cp)
+
+    # Prepare output as a dictionary
+    np_arr = cupy.asnumpy(cuda_arr)
+    pdf_cpu = cupy.asnumpy(pdf_cp)
+    d: Dict[Tuple[int], float] = {}
+
+    for row, prob in zip(np_arr, pdf_cpu):
+        key = tuple(np.round(row, decimals=decimals).astype(int))
+        d[key] = d.get(key, 0.0) + float(prob)
+
+    # Final memory cleanup
+    cupy.get_default_memory_pool().free_all_blocks()
+
+    return d
 
 def calc_jensen_shannon_divergence(dens_0: Dict[Tuple[int], float], dens_1: Dict[Tuple[int], float]) -> float:
     joint_key_set = set(dens_0.keys()) | set(dens_1.keys())
@@ -73,7 +125,7 @@ def create_parameter_sets(min_mu: int, max_mu: int, mu_step_size: int, min_sigma
 
 
 def estimate_sample_size(param_set_list, epsilon) -> int:
-    sample_size = 8
+    sample_size = 2**10
     found = False
     while not found:
         sample_size *= 2
@@ -144,11 +196,10 @@ def save_and_visualize(param_set_list: List[ParameterSet], distance_matrix: NDAr
 
 print(1)
 
-epsilon = 0.9
+epsilon = 0.1
 
 print(2)
-parameter_set_list = create_parameter_sets(0, 10, 10, 0, 10, 10)
-
+parameter_set_list = create_parameter_sets(0, 4, 2, 1, 2, 1)
 for param_set in parameter_set_list:
     print("problem_mu: " + str(param_set.problem_mu))
     print("problem_sigma: " + str(param_set.problem_sigma))
@@ -160,7 +211,7 @@ print(3)
 estimated_sample_size = estimate_sample_size(parameter_set_list, epsilon)
 
 print(4)
-distance_matrix = measure_distance(parameter_set_list, estimated_sample_size)
+#distance_matrix = measure_distance(parameter_set_list, estimated_sample_size)
 
 print(5)
-save_and_visualize(parameter_set_list, distance_matrix, estimated_sample_size, epsilon)
+#save_and_visualize(parameter_set_list, distance_matrix, estimated_sample_size, epsilon)
