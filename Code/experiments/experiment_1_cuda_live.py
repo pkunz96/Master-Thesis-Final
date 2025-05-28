@@ -130,7 +130,7 @@ def create_on_completed(base_dir: str):
 
     def on_completed(parameter_set_list: List[ParameterSet], sample_size: int, error: float, distance_map: NDArray) -> None:
         labels = ["μ=" + str(param_set.problem_mu) + "_σ=" + str(param_set.problem_sigma) for param_set in parameter_set_list]
-        filename = base_dir + "sample_size_" + str(sample_size) +"_error_" + str(error)
+        filename = base_dir + "experiment_1_live_sample_size_" + str(sample_size) +"_error_" + str(error)
 
         plt.figure(figsize=(12, 10))
         sns.heatmap(distance_map, xticklabels=labels, yticklabels=labels, annot=False, cmap='viridis', mask=np.isnan(distance_map), cbar_kws={'label': 'Jensen-Shannon Divergence (ε=' + str(error) + ', sample_size=' + str(sample_size) + ')'})
@@ -153,5 +153,5 @@ measure_distance(
         parameter_set_list,
         straight_insertion_sort,
         gen_insertion_sort_environment,
-        on_completed = create_on_completed("experiment_1_live")
+        on_completed = create_on_completed("data_experiment_1")
 )
