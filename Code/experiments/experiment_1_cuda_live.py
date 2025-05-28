@@ -33,7 +33,7 @@ def project_svd(cuda_arr: cupy.ndarray) -> cupy.ndarray:
     return reduced
 
 
-def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 512) -> Dict[Tuple[int], float]:
+def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 2048) -> Dict[Tuple[int], float]:
     cuda_arr = cupy.asarray(np_arr).astype('float32')
 
     def kde_score_in_batches(kde, data, batch_size):
@@ -117,7 +117,7 @@ def measure_distance(
         param_set_list: List[ParameterSet],
         algorithm,
         environment,
-        error_estimate_count: int = 5,
+        error_estimate_count: int = 1,
         min_sample_size_exp: int = 8,
         max_sample_size_exp: int = 20,
         on_completed: Callable[[List[ParameterSet], int, float, NDArray], None] = None
@@ -127,6 +127,7 @@ def measure_distance(
         sample_size = 2**sample_size_exp
         error = 0.0
         distance_map = []
+        print("\n")
         print("Estimating JS Divergence for sample_size = " + str(sample_size))
         for out_param_index in range(len(param_set_list)):
             distance_map.append([])
@@ -139,6 +140,8 @@ def measure_distance(
                     distance = calc_jensen_shannon_divergence(outer_density, inner_density)
                     error = max([outer_density_error, inner_density_error, error])
                     distance_map[out_param_index].append(distance)
+            completed = (out_param_index + 1) / len(param_set_list)
+            print("- Completed " + str(round(completed, 2)*100) + "%.")
         np_distance_map = np.array(distance_map)
         measurements_dict[sample_size] = (error, np_distance_map)
         if on_completed is not None:
@@ -177,5 +180,7 @@ measure_distance(
         parameter_set_list,
         straight_insertion_sort,
         gen_insertion_sort_environment,
+        min_sample_size_exp=16,
+        max_sample_size_exp=30,
         on_completed = create_on_completed("data_experiment_1")
 )
