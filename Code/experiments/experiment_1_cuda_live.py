@@ -33,45 +33,37 @@ def project_svd(cuda_arr: cupy.ndarray) -> cupy.ndarray:
     return reduced
 
 
+def kde_batched(kde, data, batch_size):
+    results = []
+    for i in range(0, data.shape[0], batch_size):
+        batch = data[i:i+batch_size]
+        scores = kde.score_samples(batch)
+        results.append(scores)
+        cupy.get_default_memory_pool().free_all_blocks()  # Optional inside loop
+    return cupy.concatenate(results)
+
+
 def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 2048) -> Dict[Tuple[int], float]:
     cuda_arr = cupy.asarray(np_arr).astype('float32')
-
-    def kde_score_in_batches(kde, data, batch_size):
-        results = []
-        for i in range(0, data.shape[0], batch_size):
-            batch = data[i:i+batch_size]
-            scores = kde.score_samples(batch)
-            results.append(scores)
-            cupy.get_default_memory_pool().free_all_blocks()  # Optional inside loop
-        return cupy.concatenate(results)
-
     try:
         kde = KernelDensity()
         kde.fit(cuda_arr)
-        log_pdf_cp = kde_score_in_batches(kde, cuda_arr, batch_size)
+        log_pdf_cp = kde_batched(kde, cuda_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
     except Exception:
         reduced_arr = project_svd(cuda_arr).astype('float32')
         kde = KernelDensity()
         kde.fit(reduced_arr)
-        log_pdf_cp = kde_score_in_batches(kde, reduced_arr, batch_size)
+        log_pdf_cp = kde_batched(kde, reduced_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
-
-    # Normalize the PDF
     pdf_cp /= cupy.sum(pdf_cp)
-
-    # Prepare output as a dictionary
     np_arr = cupy.asnumpy(cuda_arr)
     pdf_cpu = cupy.asnumpy(pdf_cp)
     d: Dict[Tuple[int], float] = {}
-
     for row, prob in zip(np_arr, pdf_cpu):
         key = tuple(np.round(row, decimals=decimals).astype(int))
         d[key] = d.get(key, 0.0) + float(prob)
-
-    # Final memory cleanup
     cupy.get_default_memory_pool().free_all_blocks()
-
     return d
 
 def calc_jensen_shannon_divergence(dens_0: Dict[Tuple[int], float], dens_1: Dict[Tuple[int], float]) -> float:
@@ -89,12 +81,14 @@ def calc_jensen_shannon_divergence(dens_0: Dict[Tuple[int], float], dens_1: Dict
             dens_1_mass_vector.append(0.0)
     return jensenshannon(np.array(dens_0_mass_vector, dtype=np.float64), np.array(dens_1_mass_vector, dtype=np.float64), base=2)
 
+
 def create_parameter_sets(min_mu: int, max_mu: int, mu_step_size: int, min_sigma: int, max_sigma: int, sigma_step_size: int) -> List[ParameterSet]:
     param_set_list = []
     for mu in range(min_mu,  max_mu + 1, mu_step_size):
         for sigma in range(min_sigma, max_sigma + 1, sigma_step_size):
             param_set_list.append(ParameterSet(mu, sigma, 5, 0))
     return param_set_list
+
 
 def sample(parameter_set: ParameterSet, sample_size: int, algorithm, environment, error_estimate_count: int) -> Tuple[Dict[Tuple[int], float], float]:
     density: Dict[Tuple[int], float] = {}
@@ -112,6 +106,7 @@ def sample(parameter_set: ParameterSet, sample_size: int, algorithm, environment
         density = pred_density_0
     error /= error_estimate_count
     return density, error
+
 
 def measure_distance(
         param_set_list: List[ParameterSet],
