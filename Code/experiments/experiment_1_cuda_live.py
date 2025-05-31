@@ -48,13 +48,13 @@ def kde_batched(kde, data, batch_size):
 def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 512) -> Dict[Tuple[int], float]:
     cuda_arr = cupy.asarray(np_arr).astype('float32')
     try:
-        kde = KernelDensity(bandwith=silverman_bandwidth(np_arr))
+        kde = KernelDensity(bandwidth=silverman_bandwidth(np_arr))
         kde.fit(cuda_arr)
         log_pdf_cp = kde_batched(kde, cuda_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
     except Exception:
         reduced_arr = project_svd(cuda_arr).astype('float32')
-        kde = KernelDensity(bandwith=silverman_bandwidth(reduced_arr))
+        kde = KernelDensity(bandwidth=silverman_bandwidth(reduced_arr))
         kde.fit(reduced_arr)
         log_pdf_cp = kde_batched(kde, reduced_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
