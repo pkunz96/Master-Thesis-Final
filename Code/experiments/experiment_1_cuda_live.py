@@ -42,16 +42,16 @@ def kde_batched(kde, data, batch_size):
     return cupy.concatenate(results)
 
 
-def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 2048) -> Dict[Tuple[int], float]:
+def estimate_density(np_arr: NDArray, decimals: int = 0, batch_size: int = 512) -> Dict[Tuple[int], float]:
     cuda_arr = cupy.asarray(np_arr).astype('float32')
     try:
-        kde = KernelDensity()
+        kde = KernelDensity(bandwith=silverman_bandwidth(np_arr))
         kde.fit(cuda_arr)
         log_pdf_cp = kde_batched(kde, cuda_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
     except Exception:
         reduced_arr = project_svd(cuda_arr).astype('float32')
-        kde = KernelDensity()
+        kde = KernelDensity(bandwith=silverman_bandwidth(reduced_arr))
         kde.fit(reduced_arr)
         log_pdf_cp = kde_batched(kde, reduced_arr, batch_size)
         pdf_cp = cupy.exp(log_pdf_cp)
@@ -137,23 +137,21 @@ def measure_distance(
         sample_size = 2**sample_size_exp
         error = 0.0
         distance_map = []
-        print("\n")
-        print("Estimating JS Divergence for sample_size = " + str(sample_size))
         for out_param_index in range(len(param_set_list)):
             distance_map.append([])
             outer_density, outer_density_error\
-                = sample(param_set_list[out_param_index], sample_size, algorithm, environment, error_estimate_count)
+                = sample(param_set_list[out_param_index],
+                         sample_size, algorithm, environment, error_estimate_count)
             for inner_param_index in range(len(param_set_list)):
                 if inner_param_index < out_param_index:
                     distance_map[out_param_index].append(np.nan)
                 else:
                     inner_density, inner_density_error \
-                        = sample(param_set_list[inner_param_index], sample_size, algorithm, environment, error_estimate_count)
+                        = sample(param_set_list[inner_param_index],
+                                 sample_size, algorithm, environment, error_estimate_count)
                     distance = calc_jensen_shannon_divergence(outer_density, inner_density)
                     error = max([outer_density_error, inner_density_error, error])
                     distance_map[out_param_index].append(distance)
-            completed = (out_param_index + 1) / len(param_set_list)
-            print("- Completed " + str(round(completed, 2)*100) + "%.")
         np_distance_map = np.array(distance_map)
         measurements_dict[sample_size] = (error, np_distance_map)
         if on_completed is not None:
@@ -174,11 +172,9 @@ def create_on_completed(base_dir: str):
             error: float,
             distance_map: NDArray
     ) -> None:
-        print("A sample size of " + str(sample_size) + "resulted in an error of " + str(error) + ".")
         labels = ["μ=" + str(param_set.problem_mu) + "_σ=" + str(param_set.problem_sigma)
                   for param_set in parameter_set_list]
         filename = base_dir + "experiment_1_live_sample_size_" + str(sample_size) +"_error_" + str(error)
-
         plt.figure(figsize=(12, 10))
         sns.heatmap(
             distance_map,
@@ -187,15 +183,15 @@ def create_on_completed(base_dir: str):
             annot=False,
             cmap='viridis',
             mask=np.isnan(distance_map),
-            cbar_kws={'label': 'Jensen-Shannon Divergence (ε=' + str(round(error, 5)) + ', sample_size=' + str(sample_size) + ')'})
+            cbar_kws={'label': 'Jensen-Shannon Divergence (ε=' +
+                               str(round(error, 5)) + ', sample_size='
+                                    + str(sample_size) + ')'})
         plt.xticks(rotation=90)
         plt.yticks(rotation=0)
         plt.tight_layout()
         plt.savefig(filename + ".png", dpi=300, bbox_inches='tight')
-
         df = pd.DataFrame(distance_map, index=labels, columns=labels)
         df.to_csv(filename + ".csv")
-
     return on_completed
 
 
