@@ -137,6 +137,7 @@ def measure_distance(
         sample_size = 2**sample_size_exp
         error = 0.0
         distance_map = []
+        print("Sample Size: " + str(sample_size))
         for out_param_index in range(len(param_set_list)):
             distance_map.append([])
             outer_density, outer_density_error\
@@ -152,6 +153,7 @@ def measure_distance(
                     distance = calc_jensen_shannon_divergence(outer_density, inner_density)
                     error = max([outer_density_error, inner_density_error, error])
                     distance_map[out_param_index].append(distance)
+            print("Sample Size: " + str((out_param_index + 1) / len(param_set_list)) + " %")
         np_distance_map = np.array(distance_map)
         measurements_dict[sample_size] = (error, np_distance_map)
         if on_completed is not None:
@@ -201,7 +203,8 @@ measure_distance(
         parameter_set_list,
         straight_insertion_sort,
         gen_insertion_sort_environment,
-        min_sample_size_exp=16,
+        #min_sample_size_exp=16,
+        min_sample_size_exp=21,
         max_sample_size_exp=30,
         on_completed = create_on_completed("data_experiment_1")
 )
