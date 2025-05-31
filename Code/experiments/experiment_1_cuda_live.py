@@ -26,11 +26,12 @@ def silverman_bandwidth(np_arr: NDArray) -> float:
 
 def project_svd(cuda_arr: cupy.ndarray) -> cupy.ndarray:
     print("Enter SVD")
+    cur_time = time.time()
     centered = cuda_arr - cupy.mean(cuda_arr, axis=0)
     u, s, vh = cupy.linalg.svd(centered, full_matrices=False)
     rank = cupy.sum(s > 1e-10)
     reduced = centered @ vh[:rank].T
-    print("Exit SVD")
+    print("Exit SVD after " + str(time.time() - cur_time))
     return reduced
 
 
