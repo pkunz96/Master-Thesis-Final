@@ -207,7 +207,7 @@ measure_distance(
         straight_insertion_sort,
         gen_insertion_sort_environment,
         #min_sample_size_exp=16,
-        min_sample_size_exp=21,
+        min_sample_size_exp=20,
         max_sample_size_exp=30,
         on_completed = create_on_completed("data_experiment_1")
 )
